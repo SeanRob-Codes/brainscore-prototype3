@@ -1,0 +1,2059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BrainScore™ – Cognitive Credit System</title>
+  <meta name="description" content="Train your brain. Track your cognitive score. Chat with Brainly." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#dc2626" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BrainScore" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --panel: #111113;
+      --panel-alt: #18181b;
+      --accent: #dc2626;
+      --accent-2: #ea580c;
+      --accent-glow: #f97316;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warn: #eab308;
+      --text-main: #fafafa;
+      --text-muted: #a1a1aa;
+      --border: #27272a;
+      --radius: 12px;
+      --radius-pill: 999px;
+      --shadow: 0 25px 50px rgba(0,0,0,0.5);
+      --btn-bg: linear-gradient(135deg, var(--accent), var(--accent-2));
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Rajdhani', system-ui, sans-serif;
+      min-height: 100vh; min-height: -webkit-fill-available;
+      background: linear-gradient(160deg, #0a0a0b 0%, #1a1210 40%, #0d0a0b 100%);
+      color: var(--text-main); display: flex; justify-content: center; align-items: flex-start;
+      padding: 0; padding-bottom: max(80px, calc(70px + env(safe-area-inset-bottom)));
+    }
+
+    /* FONTS */
+    .font-orbitron { font-family: 'Orbitron', monospace; }
+
+    /* LOGIN */
+    #loginScreen {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(160deg, #0a0a0b 0%, #1a1210 40%, #0d0a0b 100%);
+      display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-box {
+      width: 100%; max-width: 380px;
+      background: linear-gradient(165deg, #111113 0%, #0d0d0f 100%);
+      border: 1px solid var(--border); border-radius: 24px; padding: 36px 32px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.02) inset;
+      text-align: center;
+    }
+    .login-brain-icon {
+      width: 80px; height: 80px; margin: 0 auto 20px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border-radius: 20px; display: flex; align-items: center; justify-content: center;
+      font-size: 36px; box-shadow: 0 8px 24px rgba(220,38,38,0.4);
+      animation: loginPulse 2s ease-in-out infinite;
+    }
+    @keyframes loginPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+    .login-box h1 { font-family: 'Orbitron', monospace; font-size: 22px; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.1em; }
+    .login-box p { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+    #loginError { color: var(--danger); font-size: 12px; min-height: 16px; margin-bottom: 10px; }
+    .login-box input {
+      width: 100%; padding: 13px 16px; margin-bottom: 12px; border-radius: var(--radius);
+      border: 1px solid var(--border); background: var(--bg); color: var(--text-main);
+      font-size: 14px; font-family: 'Rajdhani', sans-serif; outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-box input:focus { border-color: var(--accent); }
+    .login-box button {
+      width: 100%; padding: 14px; border: none; border-radius: var(--radius);
+      background: var(--btn-bg); color: white;
+      font-weight: 700; font-size: 14px; font-family: 'Orbitron', monospace;
+      letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase;
+      box-shadow: 0 4px 20px rgba(220,38,38,0.4);
+    }
+    .login-box button:hover { filter: brightness(1.1); }
+
+    /* LOADING */
+    #loadingScreen {
+      position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 9998; transition: opacity 0.4s;
+    }
+    #loadingScreen.hidden { display: none; }
+    .loading-brain { font-size: 64px; animation: loadSpin 1.5s ease-in-out infinite; }
+    @keyframes loadSpin { 0%,100%{transform:scale(1) rotate(-5deg);} 50%{transform:scale(1.1) rotate(5deg);} }
+    #loadingScreen span { margin-top: 16px; color: var(--text-muted); font-size: 12px; font-family: 'Orbitron', monospace; letter-spacing: 0.2em; }
+
+    /* APP SHELL */
+    #appShell { display: none; width: 100%; max-width: 1100px; min-height: 100vh; }
+    #appShell.visible { display: block; }
+
+    /* HEADER */
+    .app-header {
+      padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 80;
+      background: rgba(10,10,11,0.95); backdrop-filter: blur(12px);
+    }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--btn-bg); display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .brand-text { font-family: 'Orbitron', monospace; font-size: 15px; font-weight: 700; letter-spacing: 0.12em; color: var(--text-main); }
+    .nav-tabs { display: flex; gap: 4px; }
+    .nav-tabs button {
+      padding: 8px 12px; min-height: 40px; border: 1px solid var(--border); border-radius: var(--radius-pill);
+      background: transparent; color: var(--text-muted); font-size: 10px; font-weight: 600;
+      font-family: 'Orbitron', monospace; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav-tabs button:hover { color: var(--text-main); border-color: var(--accent); }
+    .nav-tabs button.active { background: var(--accent); color: white; border-color: var(--accent); }
+    @media (max-width: 700px) { .nav-tabs { display: none; } }
+
+    /* PAGES */
+    .page { display: none; padding: 16px; }
+    .page.active { display: block; }
+
+    /* CARDS */
+    .card {
+      background: linear-gradient(165deg, var(--panel-alt) 0%, rgba(17,17,19,0.98) 100%);
+      border-radius: 16px; border: 1px solid var(--border); padding: 18px; margin-bottom: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .section-title {
+      font-family: 'Orbitron', monospace; font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.2em; color: var(--text-muted); margin-bottom: 12px;
+    }
+
+    /* SCORE CIRCLE */
+    .score-circle {
+      width: 110px; height: 110px; border-radius: 50%;
+      background: conic-gradient(from 200deg, var(--success), var(--accent), var(--accent-2), var(--success));
+      display: flex; align-items: center; justify-content: center; padding: 5px;
+      box-shadow: 0 8px 24px rgba(220,38,38,0.3), 0 0 40px rgba(220,38,38,0.1);
+      flex-shrink: 0;
+    }
+    .score-circle-inner {
+      width: 100%; height: 100%; border-radius: 50%; background: var(--panel);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .score-value { font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700; color: var(--text-main); }
+    .score-label { font-size: 9px; text-transform: uppercase; color: var(--text-muted); font-family: 'Orbitron', monospace; }
+
+    /* BUTTONS */
+    .btn-main {
+      padding: 10px 18px; border-radius: var(--radius-pill); border: none;
+      background: var(--btn-bg); color: white; font-weight: 700; font-size: 11px;
+      font-family: 'Orbitron', monospace; letter-spacing: 0.08em; cursor: pointer; text-transform: uppercase;
+      box-shadow: 0 4px 14px rgba(220,38,38,0.3); transition: all 0.12s;
+    }
+    .btn-main:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-ghost {
+      padding: 8px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border);
+      background: transparent; color: var(--text-muted); font-size: 11px; font-family: 'Orbitron', monospace;
+      cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; transition: all 0.12s;
+    }
+    .btn-ghost:hover { color: var(--text-main); border-color: var(--accent); }
+
+    /* MINI CARDS */
+    .mini-card {
+      background: rgba(0,0,0,0.3); border-radius: var(--radius);
+      border: 1px solid var(--border); padding: 10px; margin-bottom: 8px;
+    }
+    .mini-label { font-size: 9px; font-family: 'Orbitron', monospace; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.1em; }
+    .mini-main { font-size: 13px; }
+    .battery-shell { height: 8px; border-radius: 999px; background: rgba(0,0,0,0.4); overflow: hidden; margin-top: 4px; }
+    .battery-fill { height: 100%; border-radius: 999px; transition: width 0.8s ease; }
+
+    /* GAMES GRID */
+    .tests-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+    .test-card {
+      background: linear-gradient(165deg, var(--bg), rgba(10,10,11,0.95));
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 14px;
+      transition: all 0.15s; cursor: default;
+    }
+    .test-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); }
+    .test-title { font-size: 13px; font-weight: 700; font-family: 'Orbitron', monospace; margin-bottom: 4px; font-size: 11px; }
+    .test-desc { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+    .test-btn {
+      padding: 7px 12px; border-radius: 999px; border: 1px solid var(--border);
+      background: transparent; color: var(--text-main); font-size: 11px;
+      font-family: 'Orbitron', monospace; cursor: pointer; transition: all 0.12s;
+    }
+    .test-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* GAUNTLET */
+    .choice-btn {
+      padding: 11px 14px; border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg); color: var(--text-main); cursor: pointer; text-align: left;
+      font-size: 13px; font-family: 'Rajdhani', sans-serif; transition: all 0.12s;
+    }
+    .choice-btn:hover { border-color: var(--accent); background: rgba(220,38,38,0.08); }
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .strike-dot {
+      display: inline-block; width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border); margin-left: 5px; transition: all 0.2s;
+    }
+    .strike-dot.active { background: var(--danger); border-color: var(--danger); box-shadow: 0 0 8px rgba(239,68,68,0.6); }
+    .gauntlet-question { font-size: 15px; margin-bottom: 8px; line-height: 1.4; font-weight: 600; }
+    .gauntlet-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-family: 'Orbitron', monospace; }
+
+    /* HISTORY */
+    .history-row {
+      padding: 8px 0; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; font-size: 12px; align-items: center;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal-box {
+      background: linear-gradient(165deg, var(--panel), var(--panel-alt));
+      border: 1px solid var(--border); border-radius: 20px; max-width: 420px; width: 100%;
+      padding: 28px; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+    }
+    .modal-box h2 { font-family: 'Orbitron', monospace; font-size: 16px; margin-bottom: 12px; }
+    .modal-box p { color: var(--text-muted); font-size: 13px; line-height: 1.5; margin-bottom: 12px; }
+    .modal-box .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+
+    /* PLUS */
+    .plus-card {
+      background: linear-gradient(165deg, rgba(220,38,38,0.08), rgba(234,88,12,0.05));
+      border: 1px solid rgba(220,38,38,0.3); border-radius: 16px; padding: 20px; margin-bottom: 16px;
+    }
+    .plus-card h3 { font-family: 'Orbitron', monospace; font-size: 13px; margin-bottom: 10px; }
+    .plus-card ul { padding-left: 20px; color: var(--text-muted); font-size: 13px; line-height: 1.9; }
+    .paywall-price { font-family: 'Orbitron', monospace; font-size: 28px; font-weight: 700; color: var(--accent); margin: 14px 0 8px; }
+    .paywall-price span { font-size: 13px; font-weight: 400; color: var(--text-muted); }
+
+    /* CODE BLOCK */
+    .code-block { font-family: monospace; font-size: 11px; background: var(--bg); padding: 10px; border-radius: var(--radius); margin-top: 12px; overflow-x: auto; color: var(--text-muted); }
+
+    /* SCROLL */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ============================================================
+       BRAINLY CHARACTER - VIDEO GAME STYLE
+    ============================================================ */
+    .brainly-toggle {
+      position: fixed; right: max(16px, env(safe-area-inset-right));
+      bottom: max(76px, calc(70px + env(safe-area-inset-bottom)));
+      width: 60px; height: 60px; border-radius: 50%; border: none;
+      background: var(--btn-bg); cursor: pointer; z-index: 95;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 4px 16px rgba(220,38,38,0.4);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s; overflow: visible;
+    }
+    .brainly-toggle:hover { transform: scale(1.1); }
+    .brainly-toggle-inner { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+
+    /* Brainly SVG avatar */
+    .brainly-avatar-svg { width: 38px; height: 38px; }
+    .brainly-bubble {
+      position: absolute; bottom: 100%; right: 0; margin-bottom: 8px;
+      background: var(--panel); border: 1px solid var(--border); border-radius: 12px 12px 0 12px;
+      padding: 8px 12px; font-size: 11px; color: var(--text-main); white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4); display: none; font-family: 'Rajdhani', sans-serif;
+      font-weight: 600; max-width: 200px; white-space: normal; text-align: center;
+    }
+    .brainly-bubble.show { display: block; animation: bubblePop 0.2s ease; }
+    @keyframes bubblePop { from{opacity:0;transform:scale(0.8);} to{opacity:1;transform:scale(1);} }
+
+    /* Brainly panel - video game HUD style */
+    .brainly-panel {
+      position: fixed; right: max(16px, env(safe-area-inset-right));
+      bottom: max(148px, calc(144px + env(safe-area-inset-bottom)));
+      width: 340px; max-height: 500px;
+      background: #0d0d10; border: 1px solid rgba(220,38,38,0.4);
+      border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 20px rgba(220,38,38,0.1);
+      z-index: 100; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .brainly-panel.hidden { display: none; }
+
+    /* HUD header */
+    .brainly-hud-header {
+      padding: 10px 14px; display: flex; align-items: center; gap: 10px;
+      background: linear-gradient(90deg, rgba(220,38,38,0.25) 0%, rgba(234,88,12,0.15) 100%);
+      border-bottom: 1px solid rgba(220,38,38,0.3);
+    }
+    .brainly-hud-avatar { flex-shrink: 0; }
+    .brainly-hud-name {
+      font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700;
+      color: #fca5a5; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .brainly-hud-sub { font-size: 10px; color: var(--text-muted); font-family: 'Orbitron', monospace; }
+    .brainly-hud-close {
+      margin-left: auto; border: none; background: transparent; color: var(--text-muted);
+      cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; line-height: 1;
+    }
+    .brainly-hud-close:hover { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+    /* Mood bar */
+    .brainly-mood-bar {
+      padding: 6px 14px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--text-muted);
+      font-family: 'Orbitron', monospace;
+    }
+    .mood-bar-fill { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .mood-bar-inner { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 2px; transition: width 0.5s; }
+
+    /* Outfit display */
+    .brainly-outfit-row {
+      padding: 6px 14px; background: rgba(0,0,0,0.2); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted);
+      font-family: 'Orbitron', monospace; overflow-x: auto;
+    }
+    .outfit-badge {
+      flex-shrink: 0; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--border);
+      font-size: 9px; cursor: pointer; transition: all 0.12s; white-space: nowrap;
+    }
+    .outfit-badge.active { border-color: var(--accent); background: rgba(220,38,38,0.2); color: #fca5a5; }
+    .outfit-badge.locked { opacity: 0.4; cursor: not-allowed; }
+
+    .brainly-messages { flex: 1; overflow-y: auto; padding: 12px; font-size: 13px; line-height: 1.5; }
+    .brainly-msg { margin-bottom: 10px; padding: 10px 12px; border-radius: 12px; max-width: 90%; }
+    .brainly-msg.user {
+      margin-left: auto;
+      background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(234,88,12,0.15));
+      border: 1px solid rgba(220,38,38,0.3); border-left: 3px solid var(--accent);
+    }
+    .brainly-msg.brainly {
+      margin-right: auto;
+      background: linear-gradient(165deg, #1a1a1e, #14141a);
+      border: 1px solid var(--border); border-left: 3px solid var(--accent-2);
+    }
+    .brainly-msg .sender { font-size: 9px; font-family: 'Orbitron', monospace; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 3px; }
+    .brainly-input-row {
+      display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.3);
+    }
+    .brainly-input-row textarea {
+      flex: 1; min-height: 40px; max-height: 90px; padding: 9px 12px; border-radius: 10px;
+      border: 1px solid var(--border); background: rgba(0,0,0,0.4); color: var(--text-main);
+      font-size: 13px; font-family: 'Rajdhani', sans-serif; resize: none; outline: none;
+      transition: border-color 0.2s;
+    }
+    .brainly-input-row textarea:focus { border-color: var(--accent); }
+    .brainly-send {
+      align-self: flex-end; padding: 9px 14px; border-radius: 10px; border: none;
+      background: var(--btn-bg); color: white; font-weight: 700; font-size: 11px;
+      font-family: 'Orbitron', monospace; cursor: pointer;
+    }
+    .brainly-send:hover { filter: brightness(1.1); }
+
+    /* ============================================================
+       GAME OVERLAYS
+    ============================================================ */
+    .game-overlay {
+      position: fixed; inset: 0; background: rgba(5,5,8,0.97);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999; flex-direction: column; padding: 20px;
+    }
+    .game-overlay-box {
+      width: 100%; max-width: 420px; text-align: center;
+      background: linear-gradient(165deg, #111113, #0d0d10);
+      border: 1px solid var(--border); border-radius: 20px; padding: 28px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .game-title { font-family: 'Orbitron', monospace; font-size: 14px; color: var(--accent); margin-bottom: 16px; letter-spacing: 0.12em; text-transform: uppercase; }
+    .game-instruction { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+    .game-input {
+      padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg); color: var(--text-main); font-size: 16px;
+      text-align: center; letter-spacing: 0.15em; width: 100%; font-family: 'Rajdhani', sans-serif;
+      outline: none; transition: border-color 0.2s; margin-bottom: 14px;
+    }
+    .game-input:focus { border-color: var(--accent); }
+    .game-big-text { font-family: 'Orbitron', monospace; font-size: 32px; font-weight: 700; margin: 20px 0; color: var(--text-main); letter-spacing: 0.2em; }
+    .timer-bar { height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; margin-bottom: 16px; }
+    .timer-fill { height: 100%; background: linear-gradient(90deg, var(--success), var(--accent)); border-radius: 3px; transition: width 0.1s linear; }
+
+    /* Sequence tap boxes */
+    .seq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+    .seq-box {
+      width: 90px; height: 90px; border-radius: 14px; border: 2px solid var(--border);
+      background: #18181b; cursor: pointer; transition: all 0.12s; font-size: 24px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .seq-box:hover { border-color: var(--accent); }
+    .seq-box.lit { background: var(--accent); border-color: var(--accent); transform: scale(1.05); box-shadow: 0 0 20px rgba(220,38,38,0.5); }
+    .seq-box.correct-flash { background: var(--success); border-color: var(--success); }
+    .seq-box.wrong-flash { background: var(--danger); border-color: var(--danger); }
+
+    /* Rearrange game */
+    .rearrange-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 16px 0; min-height: 60px; }
+    .rearrange-word {
+      padding: 10px 16px; background: var(--panel-alt); border: 1px solid var(--border);
+      border-radius: 10px; cursor: grab; font-size: 14px; font-weight: 600;
+      user-select: none; transition: all 0.12s; font-family: 'Rajdhani', sans-serif;
+    }
+    .rearrange-word:hover { border-color: var(--accent); background: rgba(220,38,38,0.1); }
+    .rearrange-word.dragging { opacity: 0.5; cursor: grabbing; }
+    .rearrange-word.drag-over { border-color: var(--accent-2); background: rgba(234,88,12,0.15); }
+    .rearrange-drop-zone { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 52px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px dashed var(--border); margin-bottom: 16px; }
+
+    /* Color Match */
+    .color-match-word { font-family: 'Orbitron', monospace; font-size: 48px; font-weight: 900; cursor: pointer; margin: 20px 0; letter-spacing: 0.1em; transition: transform 0.1s; }
+    .color-match-word:hover { transform: scale(1.05); }
+    .color-match-skip { font-size: 11px; color: var(--text-muted); margin-top: 8px; cursor: pointer; font-family: 'Orbitron', monospace; text-decoration: underline; }
+
+    /* Result flash */
+    .result-correct { color: var(--success); font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; }
+    .result-wrong { color: var(--danger); font-family: 'Orbitron', monospace; font-size: 20px; font-weight: 700; }
+
+    /* ============================================================
+       BOTTOM NAV
+    ============================================================ */
+    .bottom-nav {
+      position: fixed; left: 0; right: 0;
+      bottom: 0; padding: 6px 12px;
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+      background: rgba(10,10,11,0.97); border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; gap: 4px; z-index: 90;
+    }
+    .bottom-nav button {
+      flex: 1; padding: 7px 4px; min-height: 52px; border-radius: 12px;
+      border: 1px solid var(--border); background: rgba(15,15,18,0.9);
+      color: var(--text-muted); font-size: 9px; font-family: 'Orbitron', monospace;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em;
+    }
+    .bottom-nav button span.icon { font-size: 18px; }
+    .bottom-nav button.active {
+      border-color: var(--accent); color: #fee2e2;
+      background: linear-gradient(135deg, rgba(220,38,38,0.3), rgba(234,88,12,0.2));
+    }
+    .bottom-nav button:hover { border-color: var(--accent); }
+
+    /* SCROLL TO TOP BUTTON */
+    .scroll-top-btn {
+      position: fixed; left: max(16px, env(safe-area-inset-left));
+      bottom: max(76px, calc(70px + env(safe-area-inset-bottom)));
+      width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border);
+      background: rgba(17,17,19,0.95); color: var(--text-muted); font-size: 18px;
+      cursor: pointer; z-index: 94; display: none; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4); transition: all 0.2s;
+      backdrop-filter: blur(8px);
+    }
+    .scroll-top-btn.visible { display: flex; }
+    .scroll-top-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* SETTINGS */
+    .settings-input {
+      padding: 10px 12px; border-radius: var(--radius); border: 1px solid var(--border);
+      background: var(--bg); color: var(--text-main); font-size: 13px;
+      font-family: 'Rajdhani', sans-serif; outline: none; width: 100%; margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+    .settings-input:focus { border-color: var(--accent); }
+
+    /* Outfit unlock notification */
+    .unlock-toast {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(234,179,8,0.9), rgba(234,88,12,0.8));
+      color: white; padding: 10px 20px; border-radius: 999px; font-family: 'Orbitron', monospace;
+      font-size: 11px; font-weight: 700; z-index: 2000; letter-spacing: 0.1em;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: none;
+      animation: toastSlide 0.3s ease;
+    }
+    @keyframes toastSlide { from{opacity:0;transform:translateX(-50%) translateY(-10px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+
+    /* Gauntlet difficulty badge */
+    .difficulty-badge { padding: 2px 8px; border-radius: 999px; font-size: 9px; font-family: 'Orbitron', monospace; font-weight: 700; letter-spacing: 0.08em; }
+    .diff-easy { background: rgba(34,197,94,0.2); color: var(--success); border: 1px solid rgba(34,197,94,0.3); }
+    .diff-medium { background: rgba(234,179,8,0.2); color: var(--warn); border: 1px solid rgba(234,179,8,0.3); }
+    .diff-hard { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+
+    /* Plus badge */
+    .plus-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; background: linear-gradient(135deg, rgba(220,38,38,0.3), rgba(234,88,12,0.2)); border: 1px solid rgba(220,38,38,0.4); font-size: 9px; font-family: 'Orbitron', monospace; font-weight: 700; color: #fca5a5; }
+  </style>
+</head>
+<body>
+
+<!-- UNLOCK TOAST -->
+<div class="unlock-toast" id="unlockToast"></div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-brain-icon">🧠</div>
+    <h1>BrainScore™</h1>
+    <p>Your cognitive credit system. Train. Track. Dominate.</p>
+    <p id="loginError"></p>
+    <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" />
+    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" />
+    <button type="button" id="loginBtn">Enter</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loadingScreen" class="hidden">
+  <div class="loading-brain">🧠</div>
+  <span>Booting your brain...</span>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-logo">🧠</div>
+      <span class="brand-text">BrainScore™</span>
+    </div>
+    <nav class="nav-tabs">
+      <button type="button" data-page="dashboard" class="active">Dashboard</button>
+      <button type="button" data-page="games">Games</button>
+      <button type="button" data-page="gauntlet">Gauntlet</button>
+      <button type="button" data-page="history">History</button>
+      <button type="button" data-page="plus">Plus</button>
+      <button type="button" data-page="settings">Settings</button>
+    </nav>
+  </header>
+
+  <main id="mainScroll">
+
+    <!-- DASHBOARD -->
+    <div id="pageDashboard" class="page active">
+      <div class="section-title">Today · BrainScore Card</div>
+      <div class="card">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+          <div class="score-circle">
+            <div class="score-circle-inner">
+              <span id="scoreValue" class="score-value">500</span>
+              <span class="score-label">Index</span>
+              <span id="rankLabel" style="font-size:9px;color:var(--text-muted);font-family:'Orbitron',monospace;margin-top:2px;">Bronze</span>
+            </div>
+          </div>
+          <div style="flex:1;min-width:180px;">
+            <div id="brainLevelLabel" style="font-family:'Orbitron',monospace;font-size:10px;color:var(--accent);margin-bottom:10px;letter-spacing:0.08em;">Brain Level: Smooth Brain</div>
+            <div class="mini-label">Cognitive Battery</div>
+            <div class="battery-shell"><div id="batteryFill" class="battery-fill" style="width:65%;background:linear-gradient(90deg,var(--success),var(--accent));"></div></div>
+            <div class="mini-label" style="margin-top:8px;">Fatigue Index</div>
+            <div class="battery-shell"><div id="fatigueFill" class="battery-fill" style="width:35%;background:linear-gradient(90deg,var(--success),var(--warn),var(--danger));"></div></div>
+            <div class="mini-card" style="margin-top:10px;">
+              <div class="mini-label">Focus Intel</div>
+              <div id="focusSummary" class="mini-main" style="font-size:12px;">Run tests to unlock today's forecast.</div>
+            </div>
+            <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
+              <button id="newDayBtn" class="btn-ghost">New Day</button>
+              <button id="saveSnapshotBtn" class="btn-main">Save to History</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick stats row -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:16px;">
+        <div class="mini-card" style="text-align:center;">
+          <div class="mini-label">Reaction</div>
+          <div id="statReaction" class="mini-main" style="font-family:'Orbitron',monospace;font-size:13px;">—</div>
+        </div>
+        <div class="mini-card" style="text-align:center;">
+          <div class="mini-label">Memory</div>
+          <div id="statMemory" class="mini-main" style="font-family:'Orbitron',monospace;font-size:13px;">—</div>
+        </div>
+        <div class="mini-card" style="text-align:center;">
+          <div class="mini-label">Logic</div>
+          <div id="statLogic" class="mini-main" style="font-family:'Orbitron',monospace;font-size:13px;">—</div>
+        </div>
+        <div class="mini-card" style="text-align:center;">
+          <div class="mini-label">Gauntlet</div>
+          <div id="statGauntlet" class="mini-main" style="font-family:'Orbitron',monospace;font-size:13px;">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAMES -->
+    <div id="pageGames" class="page">
+      <div class="section-title">Mini Cognitive Drills</div>
+      <div class="tests-grid">
+        <div class="test-card">
+          <div class="test-title">⚡ Reaction Pulse</div>
+          <div class="test-desc">Click the instant the screen glows red. Pure reflex speed.</div>
+          <div id="reactionStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="reactionBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🔢 Memory Flash</div>
+          <div class="test-desc">Memorize a digit sequence, then type it back from memory.</div>
+          <div id="memoryStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="memoryBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🧩 Logic Snap</div>
+          <div class="test-desc">Quick pattern / logic question under time pressure.</div>
+          <div id="logicStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="logicBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🎨 Color Match</div>
+          <div class="test-desc">Tap when the word's meaning matches the ink color. Stroop challenge.</div>
+          <div id="colorMatchStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="colorMatchBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🔵 Sequence Tap</div>
+          <div class="test-desc">Watch a pattern light up, then repeat it in the exact order.</div>
+          <div id="sequenceTapStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="sequenceTapBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🔤 Word Scramble</div>
+          <div class="test-desc">Unscramble the letters before time runs out.</div>
+          <div id="wordScrambleStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="wordScrambleBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">📝 Sentence Rearrange</div>
+          <div class="test-desc">Drag words into the correct sentence order.</div>
+          <div id="rearrangeStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="rearrangeBtn" class="test-btn">Run</button>
+        </div>
+        <div class="test-card">
+          <div class="test-title">🔢 Math Sprint</div>
+          <div class="test-desc">Solve 5 arithmetic problems as fast as you can.</div>
+          <div id="mathStatus" style="font-size:11px;color:var(--text-muted);margin-bottom:6px;">Not run.</div>
+          <button id="mathBtn" class="test-btn">Run</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAUNTLET -->
+    <div id="pageGauntlet" class="page">
+      <div class="section-title">Trivia Gauntlet · 3 Strikes System</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div>
+            <div class="mini-label">Strikes</div>
+            <div id="strikeIndicator">
+              <span class="strike-dot"></span>
+              <span class="strike-dot"></span>
+              <span class="strike-dot"></span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div class="mini-label">Streak</div>
+            <div id="streakCount" style="font-family:'Orbitron',monospace;font-size:18px;color:var(--warn);">0</div>
+          </div>
+        </div>
+
+        <!-- Difficulty selector -->
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <div class="mini-label" style="margin:auto 0;">Mode:</div>
+          <button class="difficulty-badge diff-easy" data-diff="easy" id="diffEasy">Easy</button>
+          <button class="difficulty-badge diff-medium active-diff" data-diff="medium" id="diffMed">Mixed</button>
+          <button class="difficulty-badge diff-hard" data-diff="hard" id="diffHard">Hard</button>
+        </div>
+
+        <div id="gauntletBody">
+          <p style="color:var(--text-muted);font-size:13px;">Hit Start Gauntlet to begin. Answer fast — speed bonuses stack.</p>
+        </div>
+        <div style="font-family:'Orbitron',monospace;font-size:10px;color:var(--text-muted);margin-top:10px;" id="gauntletMeta">0 correct · 0 wrong</div>
+        <div id="gauntletTimerBar" class="timer-bar" style="margin-top:8px;display:none;"><div id="gauntletTimerFill" class="timer-fill" style="width:100%;"></div></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="startGauntletBtn" class="btn-main">▶ Start Gauntlet</button>
+          <button id="resetGauntletBtn" class="btn-ghost">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div id="pageHistory" class="page">
+      <div class="section-title">BrainScore History</div>
+      <div class="card">
+        <div id="historyList"></div>
+        <div id="historyExportRow" style="margin-top:12px;"></div>
+        <div class="code-block" id="debugBlock">Debug: loading...</div>
+      </div>
+    </div>
+
+    <!-- PLUS -->
+    <div id="pagePlus" class="page">
+      <div class="section-title">BrainScore Plus</div>
+      <div class="plus-card">
+        <h3>🚀 Unlock the Full Brain Stack</h3>
+        <ul>
+          <li>Unlimited score history (export to CSV)</li>
+          <li>Peak performance insights &amp; trends</li>
+          <li>Exclusive Plus-only mini games</li>
+          <li>Priority Brainly — deeper AI conversations</li>
+          <li>No ads (when free tier gets them)</li>
+        </ul>
+        <div class="paywall-price" id="plusPrice">$2.99 <span>/ month</span></div>
+        <p style="color:var(--text-muted);font-size:12px;margin-bottom:14px;">Cancel anytime. Charged monthly.</p>
+        <button type="button" class="btn-main" id="subscribePlusBtn">Subscribe — $2.99/mo</button>
+      </div>
+      <div id="plusStatusCard" class="card" style="display:none;">
+        <div class="mini-label">Subscription Status</div>
+        <div class="mini-main" id="plusStatusText" style="color:var(--success);font-family:'Orbitron',monospace;font-size:13px;">✓ BrainScore Plus Active</div>
+        <button type="button" class="btn-ghost" id="managePlusBtn" style="margin-top:10px;">Manage subscription</button>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="pageSettings" class="page">
+      <div class="section-title">Settings</div>
+      <div class="card">
+        <div class="mini-card">
+          <div class="mini-label">Account</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Signed in as: <span id="settingsUsernameLabel" style="color:var(--text-main);font-family:'Orbitron',monospace;">—</span></div>
+          <input id="settingsUsername" type="text" placeholder="New username" class="settings-input">
+          <input id="settingsPassword" type="password" placeholder="New password (optional)" class="settings-input">
+          <button type="button" class="btn-main" id="accountSaveBtn">Save Account</button>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-label">Theme Color</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Changes accent colors throughout the entire app.</div>
+          <select id="themeSelect" class="settings-input" style="margin-bottom:0;">
+            <option value="aggressive">Aggressive Red (default)</option>
+            <option value="neon">Neon Cyan</option>
+            <option value="midnight">Midnight Purple</option>
+            <option value="gold">Championship Gold</option>
+            <option value="green">Matrix Green</option>
+          </select>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-label">Brainly AI Companion</div>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="brainlyToggleSetting" checked style="width:16px;height:16px;cursor:pointer;" />
+            <span>Enable Brainly comments &amp; auto messages</span>
+          </label>
+          <p style="color:var(--text-muted);font-size:11px;margin-top:6px;">Turn off if you prefer a distraction-free experience.</p>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-label">Share Score</div>
+          <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Share your current BrainScore with friends.</p>
+          <button type="button" class="btn-ghost" id="shareScoreBtn">📤 Share Score</button>
+        </div>
+
+        <div class="mini-card">
+          <div class="mini-label">Sign Out</div>
+          <button type="button" class="btn-ghost" id="signOutBtn" style="color:var(--danger);border-color:rgba(239,68,68,0.4);">Sign Out</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button type="button" data-page="dashboard" class="active"><span class="icon">🏠</span><span>Home</span></button>
+  <button type="button" data-page="games"><span class="icon">🎮</span><span>Games</span></button>
+  <button type="button" data-page="gauntlet"><span class="icon">🔥</span><span>Gauntlet</span></button>
+  <button type="button" data-page="history"><span class="icon">📈</span><span>History</span></button>
+  <button type="button" data-page="plus"><span class="icon">⭐</span><span>Plus</span></button>
+  <button type="button" data-page="settings"><span class="icon">⚙️</span><span>Settings</span></button>
+</nav>
+
+<!-- SCROLL TO TOP -->
+<button class="scroll-top-btn" id="scrollTopBtn" title="Back to top">↑</button>
+
+<!-- ONBOARDING -->
+<div id="onboardingOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h2>Welcome to BrainScore™</h2>
+    <p><strong>Dashboard</strong> — Score, battery, and quick stats.<br>
+    <strong>Games</strong> — 8 cognitive drills: reaction, memory, logic &amp; more.<br>
+    <strong>Gauntlet</strong> — Trivia with 3 strikes. Speed bonuses apply.<br>
+    <strong>History</strong> — Track your progress over time.<br>
+    <strong>Brainly</strong> — Your AI companion. Tap the brain button.</p>
+    <div class="btn-row">
+      <button type="button" class="btn-main" id="onboardingDone">Let's Go</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYWALL -->
+<div id="paywallOverlay" class="modal-overlay hidden">
+  <div class="modal-box">
+    <h2>BrainScore Plus — $2.99/mo</h2>
+    <p>Secure checkout via Stripe. Cancel anytime from your account settings.</p>
+    <div class="btn-row">
+      <button type="button" class="btn-main" id="paywallConfirm">Continue to Payment</button>
+      <button type="button" class="btn-ghost" id="paywallCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- BRAINLY TOGGLE BUTTON -->
+<button type="button" class="brainly-toggle" id="brainlyToggle" title="Chat with Brainly">
+  <div class="brainly-toggle-inner">
+    <div id="brainlyBubble" class="brainly-bubble"></div>
+    <!-- Brainly SVG avatar - cute brain character -->
+    <svg class="brainly-avatar-svg" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg" id="brainlyAvatarBtn">
+      <!-- Brain body -->
+      <ellipse cx="30" cy="28" rx="18" ry="16" fill="#f87171" opacity="0.9"/>
+      <!-- Brain folds -->
+      <path d="M18 24 Q22 20 26 24 Q30 20 34 24 Q38 20 42 24" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M16 30 Q20 26 24 30 Q28 26 32 30 Q36 26 40 30 Q44 26 44 30" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M18 36 Q22 32 26 36 Q30 32 34 36 Q38 32 42 36" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Eyes -->
+      <circle cx="23" cy="28" r="3.5" fill="white"/>
+      <circle cx="37" cy="28" r="3.5" fill="white"/>
+      <circle id="eyeL" cx="24" cy="28" r="1.8" fill="#1a1a1e"/>
+      <circle id="eyeR" cx="38" cy="28" r="1.8" fill="#1a1a1e"/>
+      <!-- Eye shine -->
+      <circle cx="24.8" cy="27.2" r="0.7" fill="white"/>
+      <circle cx="38.8" cy="27.2" r="0.7" fill="white"/>
+      <!-- Mouth / smile -->
+      <path id="brainMouth" d="M25 35 Q30 39 35 35" stroke="#dc2626" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <!-- Legs -->
+      <rect x="24" y="43" width="5" height="9" rx="2.5" fill="#f87171"/>
+      <rect x="31" y="43" width="5" height="9" rx="2.5" fill="#f87171"/>
+      <!-- Shoes -->
+      <ellipse cx="26.5" cy="52" rx="4" ry="2.5" fill="#dc2626"/>
+      <ellipse cx="33.5" cy="52" rx="4" ry="2.5" fill="#dc2626"/>
+      <!-- Arms -->
+      <rect x="10" y="26" width="9" height="5" rx="2.5" fill="#f87171" transform="rotate(-10 10 26)"/>
+      <rect x="41" y="26" width="9" height="5" rx="2.5" fill="#f87171" transform="rotate(10 41 26)"/>
+    </svg>
+  </div>
+</button>
+
+<!-- BRAINLY CHAT PANEL -->
+<div class="brainly-panel hidden" id="brainlyPanel">
+  <div class="brainly-hud-header">
+    <div class="brainly-hud-avatar">
+      <svg width="40" height="40" viewBox="0 0 60 60" fill="none" id="brainlyPanelAvatar">
+        <ellipse cx="30" cy="26" rx="17" ry="15" fill="#f87171" opacity="0.9"/>
+        <path d="M18 22 Q22 18 26 22 Q30 18 34 22 Q38 18 42 22" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M16 28 Q20 24 24 28 Q28 24 32 28 Q36 24 40 28 Q44 24 44 28" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M18 34 Q22 30 26 34 Q30 30 34 34 Q38 30 42 34" stroke="#dc2626" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="23" cy="26" r="3" fill="white"/>
+        <circle cx="37" cy="26" r="3" fill="white"/>
+        <circle cx="24" cy="26" r="1.5" fill="#1a1a1e"/>
+        <circle cx="38" cy="26" r="1.5" fill="#1a1a1e"/>
+        <circle cx="24.6" cy="25.3" r="0.6" fill="white"/>
+        <circle cx="38.6" cy="25.3" r="0.6" fill="white"/>
+        <path id="panelMouth" d="M24 33 Q30 37 36 33" stroke="#dc2626" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <!-- Outfit indicator -->
+        <rect id="outfitIndicator" x="0" y="0" width="60" height="60" fill="none" opacity="0"/>
+      </svg>
+    </div>
+    <div>
+      <div class="brainly-hud-name" id="brainlyPanelName">BRAINLY</div>
+      <div class="brainly-hud-sub" id="brainlyMoodLabel">Mood: Energized</div>
+    </div>
+    <button type="button" class="brainly-hud-close" id="brainlyClose">×</button>
+  </div>
+
+  <!-- Mood bar -->
+  <div class="brainly-mood-bar">
+    <span>MOOD</span>
+    <div class="mood-bar-fill"><div class="mood-bar-inner" id="moodBarInner" style="width:80%;"></div></div>
+    <span id="moodPercent">80%</span>
+  </div>
+
+  <!-- Outfit selector -->
+  <div class="brainly-outfit-row">
+    <span style="flex-shrink:0;">OUTFIT:</span>
+    <div id="outfitBadges"></div>
+  </div>
+
+  <div class="brainly-messages" id="brainlyMessages"></div>
+  <div class="brainly-input-row">
+    <textarea id="brainlyInput" placeholder="Ask anything... score, advice, or just say hi." rows="1"></textarea>
+    <button type="button" class="brainly-send" id="brainlySend">Send</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const STORAGE_KEY = 'brainScoreHistory';
+const AUTH_KEY = 'brainScoreUser';
+const PLUS_KEY = 'brainScorePlus';
+const ONBOARDING_KEY = 'brainScoreOnboardingDone';
+const THEME_KEY = 'brainScoreTheme';
+const OUTFIT_KEY = 'brainScoreOutfit';
+const BRAINLY_KEY = 'brainScoreBrainlyEnabled';
+const STRIPE_PLUS_PAYMENT_LINK = 'https://buy.stripe.com/6oU7sNbcVcL59SC7jIa3u01';
+const SUCCESS_URL = location.origin + location.pathname + '?plus=success';
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme(theme) {
+  const r = document.documentElement;
+  const themes = {
+    aggressive: { bg:'#0a0a0b', panel:'#111113', alt:'#18181b', a1:'#dc2626', a2:'#ea580c' },
+    neon:       { bg:'#020617', panel:'#030d1a', alt:'#041224', a1:'#22d3ee', a2:'#0ea5e9' },
+    midnight:   { bg:'#060311', panel:'#0e0820', alt:'#120b2a', a1:'#6366f1', a2:'#a855f7' },
+    gold:       { bg:'#0a0800', panel:'#131100', alt:'#1a1600', a1:'#f59e0b', a2:'#d97706' },
+    green:      { bg:'#010a01', panel:'#051205', alt:'#071a07', a1:'#22c55e', a2:'#16a34a' }
+  };
+  const t = themes[theme] || themes.aggressive;
+  r.style.setProperty('--bg', t.bg);
+  r.style.setProperty('--panel', t.panel);
+  r.style.setProperty('--panel-alt', t.alt);
+  r.style.setProperty('--accent', t.a1);
+  r.style.setProperty('--accent-2', t.a2);
+  r.style.setProperty('--btn-bg', `linear-gradient(135deg, ${t.a1}, ${t.a2})`);
+  try { localStorage.setItem(THEME_KEY, theme); } catch(e){}
+}
+
+function loadTheme() {
+  try { return localStorage.getItem(THEME_KEY) || 'aggressive'; } catch(e) { return 'aggressive'; }
+}
+
+// ============================================================
+// PLUS
+// ============================================================
+function isPlus() {
+  try {
+    const d = JSON.parse(localStorage.getItem(PLUS_KEY) || 'null');
+    return d && (d.active === true || (d.expiry && new Date(d.expiry) > new Date()));
+  } catch(e) { return false; }
+}
+function setPlusActive(v) {
+  const exp = new Date(); exp.setMonth(exp.getMonth() + 1);
+  localStorage.setItem(PLUS_KEY, JSON.stringify({ active: !!v, expiry: exp.toISOString() }));
+}
+function updatePlusUI() {
+  const plus = isPlus();
+  const priceWrap = document.getElementById('plusPrice')?.parentElement;
+  const subBtn = document.getElementById('subscribePlusBtn');
+  const statusCard = document.getElementById('plusStatusCard');
+  if (priceWrap) priceWrap.style.display = plus ? 'none' : 'block';
+  if (subBtn) subBtn.style.display = plus ? 'none' : 'inline-flex';
+  if (statusCard) statusCard.style.display = plus ? 'block' : 'none';
+  const exportRow = document.getElementById('historyExportRow');
+  if (exportRow) {
+    if (plus) {
+      exportRow.innerHTML = '<button type="button" class="btn-ghost" id="exportHistoryBtn">📥 Export CSV</button>';
+      document.getElementById('exportHistoryBtn').onclick = exportHistory;
+    } else {
+      exportRow.innerHTML = '<p style="color:var(--text-muted);font-size:12px;">Export history with <a href="#" id="goToPlusLink" style="color:var(--accent);">BrainScore Plus</a>.</p>';
+      const lnk = document.getElementById('goToPlusLink');
+      if (lnk) lnk.onclick = e => { e.preventDefault(); navTo('plus'); };
+    }
+  }
+}
+function exportHistory() {
+  if (!state.history.length) return;
+  const csv = 'Date,Score\n' + state.history.map(h => `"${h.date}",${h.score}`).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'brainscore-history.csv'; a.click();
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+function doLogin() {
+  const user = (document.getElementById('loginUsername').value||'').trim();
+  const pass = document.getElementById('loginPassword').value||'';
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  if (user.length < 3) { err.textContent = 'Username must be 3+ characters.'; return; }
+  const stored = (() => { try { return JSON.parse(localStorage.getItem(AUTH_KEY)); } catch(e){return null;} })();
+  if (stored) {
+    if (!pass || stored.user !== user || stored.pass !== pass) { err.textContent = 'Incorrect username or password.'; return; }
+  } else {
+    if (pass.length < 6 || !/[A-Za-z]/.test(pass) || !/\d/.test(pass)) { err.textContent = 'Password: 6+ chars, letters and numbers.'; return; }
+    localStorage.setItem(AUTH_KEY, JSON.stringify({user, pass}));
+  }
+  document.getElementById('loginScreen').style.display = 'none';
+  showLoading(() => { document.getElementById('appShell').classList.add('visible'); initApp(); });
+}
+
+function showLoading(cb) {
+  const ls = document.getElementById('loadingScreen');
+  ls.classList.remove('hidden');
+  setTimeout(() => { ls.classList.add('hidden'); cb(); }, 1800);
+}
+
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+// Plus return
+if (/plus=success/.test(location.search||'')) {
+  setPlusActive(true);
+  try { history.replaceState(null,'',location.pathname); } catch(e){}
+}
+
+// ============================================================
+// STATE
+// ============================================================
+const state = {
+  baseScore:500, currentScore:500, trend:0,
+  battery:0.65, fatigue:0.35,
+  reactionMs:null, memoryScore:null, logicScore:null,
+  colorMatchScore:null, sequenceTapScore:null, wordScrambleScore:null,
+  rearrangeScore:null, mathScore:null,
+  gauntletDelta:0,
+  history:[],
+  gauntlet:{ active:false, strikes:0, correct:0, wrong:0, streak:0, questionIndex:null, usedIndices:new Set(), difficulty:'medium', timerInterval:null },
+  brainlyEnabled:true,
+  brainlyMood:80,
+  currentOutfit:'default',
+  unlockedOutfits:new Set(['default'])
+};
+
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+
+// ============================================================
+// OUTFITS
+// ============================================================
+const OUTFITS = {
+  default: { name:'Default', emoji:'🧠', minScore:0, color:'#f87171', accent:'#dc2626', label:'Default' },
+  scholar: { name:'Scholar', emoji:'🎓', minScore:600, color:'#818cf8', accent:'#6366f1', label:'Scholar (600+)' },
+  champion: { name:'Champ', emoji:'🏆', minScore:700, color:'#fbbf24', accent:'#d97706', label:'Champion (700+)' },
+  cyber: { name:'Cyber', emoji:'🤖', minScore:800, color:'#22d3ee', accent:'#0ea5e9', label:'Cyber (800+)' },
+  apex: { name:'Apex', emoji:'👾', minScore:900, color:'#f472b6', accent:'#ec4899', label:'Apex Mind (900+)' }
+};
+
+function checkOutfitUnlocks() {
+  const prev = new Set(state.unlockedOutfits);
+  Object.entries(OUTFITS).forEach(([key, outfit]) => {
+    if (state.currentScore >= outfit.minScore && !prev.has(key)) {
+      state.unlockedOutfits.add(key);
+      showUnlockToast(`🎉 UNLOCKED: ${outfit.emoji} ${outfit.name} outfit!`);
+    }
+  });
+  renderOutfitBadges();
+}
+
+function renderOutfitBadges() {
+  const container = document.getElementById('outfitBadges');
+  if (!container) return;
+  container.innerHTML = '';
+  container.style.display = 'flex'; container.style.gap = '6px';
+  Object.entries(OUTFITS).forEach(([key, outfit]) => {
+    const badge = document.createElement('button');
+    badge.className = 'outfit-badge';
+    const unlocked = state.unlockedOutfits.has(key);
+    if (!unlocked) badge.classList.add('locked');
+    if (state.currentOutfit === key) badge.classList.add('active');
+    badge.textContent = outfit.emoji + ' ' + outfit.name;
+    badge.title = unlocked ? `Wear ${outfit.name}` : outfit.label;
+    if (unlocked) {
+      badge.onclick = () => {
+        state.currentOutfit = key;
+        try { localStorage.setItem(OUTFIT_KEY, key); } catch(e){}
+        applyOutfitToBrainly(key);
+        renderOutfitBadges();
+      };
+    }
+    container.appendChild(badge);
+  });
+}
+
+function applyOutfitToBrainly(key) {
+  const outfit = OUTFITS[key];
+  if (!outfit) return;
+  // Update panel avatar color
+  const btnSvg = document.getElementById('brainlyAvatarBtn');
+  const panelSvg = document.getElementById('brainlyPanelAvatar');
+  [btnSvg, panelSvg].forEach(svg => {
+    if (!svg) return;
+    svg.querySelectorAll('ellipse[cx="30"]').forEach(el => el.setAttribute('fill', outfit.color));
+    svg.querySelectorAll('rect').forEach(el => { if (el.getAttribute('fill') === '#f87171' || el.getAttribute('fill') === outfit.color) el.setAttribute('fill', outfit.color); });
+    svg.querySelectorAll('ellipse').forEach(el => { if (el.getAttribute('fill') === '#f87171') el.setAttribute('fill', outfit.color); });
+    svg.querySelectorAll('path').forEach(el => { if (el.getAttribute('stroke') === '#dc2626') el.setAttribute('stroke', outfit.accent); });
+  });
+  const nameEl = document.getElementById('brainlyPanelName');
+  if (nameEl) nameEl.textContent = outfit.emoji + ' BRAINLY';
+}
+
+function showUnlockToast(msg) {
+  const t = document.getElementById('unlockToast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+
+// ============================================================
+// BRAINLY
+// ============================================================
+const brainly = {
+  say(msg, isUser=false) {
+    if (!isUser && !state.brainlyEnabled) return;
+    const el = document.getElementById('brainlyMessages');
+    const d = document.createElement('div');
+    d.className = 'brainly-msg ' + (isUser ? 'user' : 'brainly');
+    const label = document.createElement('div');
+    label.className = 'sender';
+    label.textContent = isUser ? 'You' : 'Brainly';
+    d.appendChild(label);
+    const text = document.createElement('div');
+    text.textContent = msg;
+    d.appendChild(text);
+    el.appendChild(d);
+    el.scrollTop = el.scrollHeight;
+    if (!isUser) this.updateMood(msg);
+  },
+  updateMood(msg) {
+    const positive = /(good|great|nice|wow|correct|nice|amazing|solid|well done|impressive)/i.test(msg);
+    const negative = /(ouch|wrong|yikes|rough|bad|miss|strike)/i.test(msg);
+    if (positive) state.brainlyMood = clamp(state.brainlyMood + 8, 0, 100);
+    if (negative) state.brainlyMood = clamp(state.brainlyMood - 5, 10, 100);
+    const bar = document.getElementById('moodBarInner');
+    const pct = document.getElementById('moodPercent');
+    const lbl = document.getElementById('brainlyMoodLabel');
+    if (bar) bar.style.width = state.brainlyMood + '%';
+    if (pct) pct.textContent = state.brainlyMood + '%';
+    if (lbl) {
+      const moods = ['Tired','Low Energy','Neutral','Focused','Energized','Hyped'];
+      const idx = Math.floor((state.brainlyMood / 100) * (moods.length - 1));
+      lbl.textContent = 'Mood: ' + moods[idx];
+    }
+  },
+  showBubble(msg) {
+    if (!state.brainlyEnabled) return;
+    const b = document.getElementById('brainlyBubble');
+    if (!b) return;
+    b.textContent = msg; b.classList.add('show');
+    setTimeout(() => b.classList.remove('show'), 3000);
+  },
+  reply(userText) {
+    const t = userText.toLowerCase().trim();
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const score = state.currentScore;
+    const rank = getRank(score);
+    const plus = isPlus();
+    if (!t) return pick(["Say something? I'm listening.", "Go on, I'm here."]);
+    if (/(hi|hey|hello|yo|sup|gm|howdy)/i.test(t))
+      return pick(["Hey! Ready to grind some brain points?", "What's good. I'm here to hype you or roast you.", "Oh hi. Score's " + score + ". Want to talk about it?"]);
+    if (/(bye|later|gn|goodnight|cya)/i.test(t))
+      return pick(["Later. Rest that brain.", "See ya. Come back sharp.", "Peace. I'll be here."]);
+    if (/(thank|thanks|thx|ty)/i.test(t))
+      return pick(["Anytime! Now go get that score up.", "You're welcome. More where that came from.", "Happy to help. Now let's get those numbers moving."]);
+    if (/(score|rank|points|rating|my score)/i.test(t))
+      return pick([`You're at ${score} — ${rank}. Keep that trend going.`, `${score}. ${rank}. I've seen worse. I've also seen better.`, `${score} and ${rank}. Run more drills to push it higher.`]);
+    if (/(sad|stress|tired|rough|hard|bad day|struggle)/i.test(t))
+      return pick(["Off days happen. Just show up — that's the hard part.", "Your score will still be here tomorrow. Rest if you need it.", "No judgment here. One small drill. That's all."]);
+    if (/(outfit|skin|look|dress|change look)/i.test(t))
+      return pick(["Hit a higher score to unlock new outfits! Try for 600+ for Scholar.", "Check the outfit selector at the top of my chat panel.", `You're currently wearing the ${OUTFITS[state.currentOutfit]?.name || 'default'} look.`]);
+    if (/(help|advice|tip|how do i|what should)/i.test(t))
+      return pick(["Warm up with Reaction + Memory, then hit the Gauntlet. Save after you peak.", "One drill at a time. Build the session. Then Gauntlet when you're warm.", "Dashboard shows your battery and fatigue. Play when battery is high, fatigue low."]);
+    if (/(plus|subscribe|premium|pay|2.99)/i.test(t))
+      return plus ? pick(["You've got Plus. Use that export!", "Plus member status: confirmed. Nice."]) : pick(["Plus gets you export, trends, exclusive games. $2.99/mo on the Plus tab.", "Check the Plus tab — worth it if you're serious about tracking progress."]);
+    return pick([
+      "I'm here for score talk, advice, and vibes. Ask me anything.",
+      "Try: 'what's my score', 'give me advice', or just vent.",
+      "Keep talking — I'm all ears. Or try running a drill?"
+    ]);
+  },
+  lines: {
+    welcome: ["Hey, you're back. Let's see if that brain held up.", "Ready to earn some points?", "Welcome back. I've been waiting to watch you grind."],
+    scoreUp: ["Score went up. Okay, I'm actually impressed.", "Look at you! That's what I'm talking about.", "Nice run. Keep that energy."],
+    scoreDown: ["Rough. Your brain is just warming up.", "We'll get 'em next time.", "It's fine. Off days are data too."],
+    gauntletWin: ["You didn't choke! Genuinely surprised. Good work.", "Gauntlet cleared. Neurons firing properly.", "Respect. That was legit solid."],
+    gauntletStrike: ["Strike. No pressure. (There's pressure.)", "One closer to game over. Make the next one count.", "Oof. Breathe. Then nail the next one."],
+    testGood: ["Okay okay, not bad. I'll allow it.", "That's what I'm talking about!", "See? Something's working up there."],
+    testBad: ["Yikes. Try again when your brain boots up.", "That was... a warm-up. Yeah, let's go with that.", "Rough. But we're here to improve. So improve."],
+    vibe: ["One drill at a time. You've got this.", "Your brain is a muscle. Today is a rep.", "Let's go. I'm in your corner."]
+  },
+  pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+};
+
+// Toggle panel
+document.getElementById('brainlyToggle').addEventListener('click', () => {
+  const p = document.getElementById('brainlyPanel');
+  p.classList.toggle('hidden');
+  if (!p.classList.contains('hidden')) {
+    state.brainlyEnabled = true;
+    document.getElementById('brainlyInput').focus();
+    const msgEl = document.getElementById('brainlyMessages');
+    if (msgEl.children.length === 0)
+      brainly.say("Hey! I'm Brainly — your brain companion. Ask about your score, get advice, or just chat. I've got you.", false);
+  }
+});
+document.getElementById('brainlyClose').addEventListener('click', () => {
+  document.getElementById('brainlyPanel').classList.add('hidden');
+});
+
+function sendBrainlyMsg() {
+  const inp = document.getElementById('brainlyInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  // Auto-open panel
+  document.getElementById('brainlyPanel').classList.remove('hidden');
+  brainly.say(text, true);
+  setTimeout(() => brainly.say(brainly.reply(text), false), 450);
+}
+document.getElementById('brainlySend').addEventListener('click', sendBrainlyMsg);
+document.getElementById('brainlyInput').addEventListener('keydown', e => { if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendBrainlyMsg();} });
+
+// ============================================================
+// NAV
+// ============================================================
+function navTo(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tabs button,[data-page]').forEach(b=>b.classList.remove('active'));
+  const target = document.getElementById('page'+page.charAt(0).toUpperCase()+page.slice(1));
+  if (target) target.classList.add('active');
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(b=>b.classList.add('active'));
+  // Scroll to top on page change
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.querySelectorAll('[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.getAttribute('data-page');
+    navTo(page);
+  });
+});
+
+// Scroll to top button
+const scrollTopBtn = document.getElementById('scrollTopBtn');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 200) scrollTopBtn.classList.add('visible');
+  else scrollTopBtn.classList.remove('visible');
+});
+scrollTopBtn.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+// Double-tap nav button to scroll to top
+let lastNavTap = null;
+document.querySelectorAll('.bottom-nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const page = btn.getAttribute('data-page');
+    if (lastNavTap === page) { window.scrollTo({top:0, behavior:'smooth'}); }
+    lastNavTap = page;
+    setTimeout(() => { lastNavTap = null; }, 600);
+  });
+});
+
+// ============================================================
+// RANK & SCORE
+// ============================================================
+function getRank(s) {
+  if (s>=900) return 'Apex Mind';
+  if (s>=820) return 'Genius';
+  if (s>=740) return 'Elite';
+  if (s>=670) return 'Diamond';
+  if (s>=600) return 'Platinum';
+  if (s>=540) return 'Gold';
+  if (s>=480) return 'Silver';
+  return 'Bronze';
+}
+function getBrainLevel(s) {
+  if (s>=880) return 'Brain Genius';
+  if (s>=760) return 'Galaxy Brain';
+  if (s>=640) return 'Big Brain';
+  if (s>=520) return 'Thinking Brain';
+  return 'Smooth Brain';
+}
+
+function recomputeScore() {
+  let score = state.baseScore;
+  if (state.reactionMs!=null) {
+    if (state.reactionMs<200) score+=60;
+    else if (state.reactionMs<280) score+=40;
+    else if (state.reactionMs<400) score+=10;
+    else score-=20;
+  }
+  if (state.memoryScore!=null) score += (state.memoryScore - 0.5) * 100;
+  if (state.logicScore!=null) score += (state.logicScore - 0.5) * 80;
+  if (state.colorMatchScore!=null) score += (state.colorMatchScore - 0.5) * 60;
+  if (state.sequenceTapScore!=null) score += (state.sequenceTapScore - 0.5) * 60;
+  if (state.wordScrambleScore!=null) score += (state.wordScrambleScore - 0.5) * 60;
+  if (state.rearrangeScore!=null) score += (state.rearrangeScore - 0.5) * 50;
+  if (state.mathScore!=null) score += (state.mathScore - 0.5) * 70;
+  score += state.gauntletDelta;
+  score += (state.battery - 0.6) * 60;
+  score -= state.fatigue * 30;
+  const prev = state.currentScore;
+  state.currentScore = clamp(Math.round(score), 0, 1000);
+  state.trend = state.currentScore - prev;
+  document.getElementById('scoreValue').textContent = state.currentScore;
+  document.getElementById('rankLabel').textContent = getRank(state.currentScore);
+  const lvlEl = document.getElementById('brainLevelLabel');
+  if (lvlEl) lvlEl.textContent = 'Brain Level: ' + getBrainLevel(state.currentScore);
+  document.getElementById('batteryFill').style.width = (state.battery*100)+'%';
+  document.getElementById('fatigueFill').style.width = (state.fatigue*100)+'%';
+  const summaries = [
+    "Speed looks solid. Consistency wins the long game.",
+    "Sharper after warm-up. Schedule hard tasks mid-session.",
+    "Short intense bursts beat marathons today.",
+    "Decision speed high. Protect focus from distractions."
+  ];
+  document.getElementById('focusSummary').textContent = summaries[Math.floor(Math.random()*summaries.length)];
+  updateStatCards();
+  checkOutfitUnlocks();
+  refreshDebug();
+}
+
+function updateStatCards() {
+  const r = document.getElementById('statReaction');
+  const m = document.getElementById('statMemory');
+  const l = document.getElementById('statLogic');
+  const g = document.getElementById('statGauntlet');
+  if (r) r.textContent = state.reactionMs ? state.reactionMs+'ms' : '—';
+  if (m) m.textContent = state.memoryScore != null ? Math.round(state.memoryScore*100)+'%' : '—';
+  if (l) l.textContent = state.logicScore != null ? (state.logicScore===1?'✓':'✗') : '—';
+  if (g) g.textContent = state.gauntletDelta ? (state.gauntletDelta>=0?'+':'')+state.gauntletDelta : '—';
+}
+
+function refreshDebug() {
+  const el = document.getElementById('debugBlock');
+  if (el) el.textContent = `score: ${state.currentScore} | trend: ${state.trend>=0?'+':''}${state.trend} | reaction: ${state.reactionMs??'—'}ms | gauntlet: ${state.gauntletDelta>=0?'+':''}${state.gauntletDelta}`;
+}
+
+// ============================================================
+// HISTORY
+// ============================================================
+function loadHistory() {
+  try { const raw = localStorage.getItem(STORAGE_KEY); if(raw) state.history = JSON.parse(raw); } catch(e){}
+  renderHistory();
+}
+function saveHistory() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.history)); } catch(e){} }
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (!state.history.length) { list.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">No saved sessions yet. Hit "Save to History" after a session.</p>'; return; }
+  // Show chart if 3+ entries
+  const entries = state.history.slice(-20).reverse();
+  let html = '';
+  if (state.history.length >= 3) {
+    const max = Math.max(...state.history.map(h=>h.score));
+    const min = Math.min(...state.history.map(h=>h.score));
+    html += `<div style="margin-bottom:12px;"><div class="mini-label">Score Trend (last 10)</div><div style="display:flex;align-items:flex-end;gap:3px;height:50px;">${state.history.slice(-10).map(h=>{const pct=max===min?50:Math.round(((h.score-min)/(max-min))*100);return `<div title="${h.score}" style="flex:1;height:${Math.max(8,pct*0.48)}px;background:var(--accent);border-radius:3px 3px 0 0;opacity:0.7;"></div>`;}).join('')}</div></div>`;
+  }
+  html += entries.map(h => `<div class="history-row"><span style="color:var(--text-muted)">${h.date}</span><span style="font-family:'Orbitron',monospace;color:${h.score>=700?'var(--success)':h.score>=500?'var(--warn)':'var(--danger)'}">${h.score}</span></div>`).join('');
+  list.innerHTML = html;
+}
+function saveSnapshot() {
+  const now = new Date();
+  state.history.push({ date: now.toLocaleDateString()+' '+now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), score: state.currentScore });
+  if (!isPlus() && state.history.length > 10) state.history = state.history.slice(-10);
+  saveHistory(); renderHistory();
+  brainly.showBubble('Score saved! 📊');
+  brainly.say(brainly.pick(brainly.lines.scoreUp));
+}
+
+function shareScore() {
+  const text = `My BrainScore is ${state.currentScore} (${getRank(state.currentScore)}, ${getBrainLevel(state.currentScore)}) 🧠`;
+  if (navigator.share) navigator.share({ title:'My BrainScore', text }).catch(()=>{});
+  else if (navigator.clipboard?.writeText) { navigator.clipboard.writeText(text).then(()=>brainly.say('Copied to clipboard. Go flex.',false)).catch(()=>{}); }
+  else alert(text);
+}
+
+function newDay() {
+  state.battery = clamp(0.6+(Math.random()*0.3-0.15), 0.3, 1);
+  state.fatigue = clamp(0.35+(Math.random()*0.25-0.1), 0, 1);
+  state.reactionMs = state.memoryScore = state.logicScore = state.colorMatchScore = state.sequenceTapScore = state.wordScrambleScore = state.rearrangeScore = state.mathScore = null;
+  state.gauntletDelta = 0;
+  ['reactionStatus','memoryStatus','logicStatus','colorMatchStatus','sequenceTapStatus','wordScrambleStatus','rearrangeStatus','mathStatus'].forEach(id=>{
+    const el = document.getElementById(id); if(el){el.textContent='Not run.';el.style.color='';}
+  });
+  resetGauntlet(true);
+  recomputeScore();
+  brainly.say(brainly.pick(brainly.lines.vibe));
+}
+
+// ============================================================
+// GAME OVERLAY HELPER
+// ============================================================
+function createOverlay() {
+  const div = document.createElement('div');
+  div.className = 'game-overlay';
+  document.body.appendChild(div);
+  return div;
+}
+
+// ============================================================
+// REACTION TEST
+// ============================================================
+function runReactionTest() {
+  const status = document.getElementById('reactionStatus');
+  status.textContent = 'Starting…';
+  const overlay = createOverlay();
+  overlay.style.background = '#050508';
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">⚡ Reaction Pulse</div><p id="reactionMsg" class="game-instruction">Wait for the glow, then tap as fast as you can!</p><div id="reactionFlash" style="width:120px;height:120px;border-radius:50%;background:#1a1a1e;border:3px solid var(--border);margin:20px auto;transition:all 0.1s;cursor:pointer;"></div></div>`;
+  let start = 0; let tooEarly = false;
+  const flash = overlay.querySelector('#reactionFlash');
+  const msg = overlay.querySelector('#reactionMsg');
+  const t = setTimeout(() => {
+    flash.style.background = 'radial-gradient(circle, #dc2626, #ea580c)';
+    flash.style.boxShadow = '0 0 40px rgba(220,38,38,0.8)';
+    msg.textContent = 'TAP NOW!';
+    start = performance.now();
+  }, 1500 + Math.random() * 2500);
+  flash.onclick = () => {
+    if (start === 0) {
+      clearTimeout(t); overlay.remove();
+      status.textContent = 'Too early!'; status.style.color = 'var(--danger)'; return;
+    }
+    const ms = Math.round(performance.now() - start);
+    overlay.remove();
+    state.reactionMs = ms;
+    status.textContent = ms + ' ms';
+    status.style.color = ms < 300 ? 'var(--success)' : 'var(--text-muted)';
+    recomputeScore();
+    brainly.say(ms < 260 ? brainly.pick(brainly.lines.testGood) : brainly.pick(brainly.lines.testBad));
+    brainly.showBubble(ms < 260 ? '⚡ Quick reflexes!' : '🐢 Try again!');
+  };
+}
+
+// ============================================================
+// MEMORY TEST
+// ============================================================
+function runMemoryTest() {
+  const status = document.getElementById('memoryStatus');
+  const len = 5 + Math.floor(Math.random() * 4);
+  let seq = '';
+  for (let i=0;i<len;i++) seq += Math.floor(Math.random()*10);
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🔢 Memory Flash</div><div id="memPhase" class="game-instruction">Memorize these digits — they disappear in 3 seconds.</div><div id="memDisplay" class="game-big-text" style="letter-spacing:0.3em;">${seq}</div><div id="memInputArea" style="display:none;"><input class="game-input" id="memInput" type="text" placeholder="Type the sequence..." autocomplete="off" /><button class="btn-main" id="memSubmit">Submit</button></div><div class="timer-bar" id="memTimer"><div class="timer-fill" id="memTimerFill" style="width:100%;"></div></div></div>`;
+  let timerInterval = setInterval(() => {
+    const fill = overlay.querySelector('#memTimerFill');
+    if (fill) fill.style.width = (parseFloat(fill.style.width||'100') - (100/30)) + '%';
+  }, 100);
+  setTimeout(() => {
+    clearInterval(timerInterval);
+    const disp = overlay.querySelector('#memDisplay');
+    const phase = overlay.querySelector('#memPhase');
+    const inputArea = overlay.querySelector('#memInputArea');
+    if (disp) disp.textContent = '●'.repeat(len);
+    if (phase) phase.textContent = 'Now type what you remember!';
+    if (inputArea) { inputArea.style.display = 'block'; overlay.querySelector('#memInput').focus(); }
+  }, 3000);
+  const submit = () => {
+    const inp = overlay.querySelector('#memInput').value.trim();
+    let correct = 0;
+    for (let i=0;i<seq.length;i++) if(inp[i]===seq[i]) correct++;
+    const ratio = correct/seq.length;
+    state.memoryScore = ratio;
+    status.textContent = correct+'/'+seq.length+' ('+Math.round(ratio*100)+'%)';
+    status.style.color = ratio>=0.7?'var(--success)':'var(--text-muted)';
+    overlay.remove();
+    recomputeScore();
+    brainly.say(ratio>=0.8?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+  };
+  overlay.querySelector('#memSubmit').onclick = submit;
+  overlay.querySelector('#memInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+}
+
+// ============================================================
+// LOGIC TEST
+// ============================================================
+function runLogicTest() {
+  const status = document.getElementById('logicStatus');
+  const qs = [
+    {q:'Next in sequence: 2, 4, 8, 16, ?', a:'32'},
+    {q:'Next in sequence: A, C, E, G, ?', a:'I'},
+    {q:'Which is largest: 3/5, 2/3, or 5/9?', a:'2/3'},
+    {q:'A fair coin flipped 4 times. Most likely # of heads?', a:'2'},
+    {q:'Next: 1, 1, 2, 3, 5, 8, ?', a:'13'},
+    {q:'What number comes next: 100, 50, 25, 12.5, ?', a:'6.25'},
+    {q:'If all Bloops are Razzles and all Razzles are Lazzles, are all Bloops Lazzles?', a:'yes'},
+    {q:'How many months have 28 days?', a:'12'},
+    {q:'A man walks 3km north, 4km east. How far from start?', a:'5'},
+    {q:'Next: 3, 6, 12, 24, ?', a:'48'}
+  ];
+  const {q,a} = qs[Math.floor(Math.random()*qs.length)];
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🧩 Logic Snap</div><p style="font-size:15px;margin-bottom:20px;line-height:1.5;">${q}</p><input class="game-input" id="logicInput" type="text" placeholder="Your answer..." autocomplete="off" /><button class="btn-main" id="logicSubmit">Submit</button></div>`;
+  overlay.querySelector('#logicInput').focus();
+  const submit = () => {
+    const raw = (overlay.querySelector('#logicInput').value||'').trim().toLowerCase();
+    const ok = raw === a.toLowerCase();
+    state.logicScore = ok ? 1 : 0.3;
+    status.textContent = ok ? '✓ Correct' : '✗ Wrong ('+a+')';
+    status.style.color = ok ? 'var(--success)' : 'var(--danger)';
+    overlay.remove();
+    recomputeScore();
+    brainly.say(ok?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+    brainly.showBubble(ok?'🧩 Logic on point!':'🤔 Think it through!');
+  };
+  overlay.querySelector('#logicSubmit').onclick = submit;
+  overlay.querySelector('#logicInput').addEventListener('keydown', e=>{ if(e.key==='Enter') submit(); });
+}
+
+// ============================================================
+// COLOR MATCH (STROOP)
+// ============================================================
+function runColorMatchTest() {
+  const status = document.getElementById('colorMatchStatus');
+  const words = ['RED','BLUE','GREEN','YELLOW'];
+  const colorMap = {RED:'#dc2626',BLUE:'#2563eb',GREEN:'#22c55e',YELLOW:'#eab308'};
+  let score=0, round=0, total=8;
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🎨 Color Match</div><p id="cmInstr" class="game-instruction">Tap the word when its MEANING matches its INK COLOR.</p><div id="cmWord" class="color-match-word"></div><div style="display:flex;justify-content:center;gap:16px;"><button class="btn-main" id="cmYes">✓ Match</button><button class="btn-ghost" id="cmNo">✗ No Match</button></div><div style="margin-top:12px;font-family:'Orbitron',monospace;font-size:11px;color:var(--text-muted);" id="cmProgress">Round 0/${total}</div></div>`;
+  let currentMatch = false;
+  function nextRound() {
+    if (round >= total) {
+      const ratio = score/total;
+      state.colorMatchScore = ratio;
+      status.textContent = score+'/'+total+' correct';
+      status.style.color = ratio>=0.7?'var(--success)':'var(--text-muted)';
+      overlay.remove(); recomputeScore();
+      brainly.say(ratio>=0.75?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+      return;
+    }
+    round++;
+    currentMatch = Math.random() < 0.5;
+    const word = words[Math.floor(Math.random()*words.length)];
+    let colorWord = currentMatch ? word : words.filter(w=>w!==word)[Math.floor(Math.random()*3)];
+    const el = overlay.querySelector('#cmWord');
+    el.textContent = word; el.style.color = colorMap[colorWord];
+    overlay.querySelector('#cmProgress').textContent = 'Round '+round+'/'+total;
+  }
+  overlay.querySelector('#cmYes').onclick = () => { if(currentMatch) score++; nextRound(); };
+  overlay.querySelector('#cmNo').onclick = () => { if(!currentMatch) score++; nextRound(); };
+  nextRound();
+}
+
+// ============================================================
+// SEQUENCE TAP
+// ============================================================
+function runSequenceTapTest() {
+  const status = document.getElementById('sequenceTapStatus');
+  const emojis = ['🟥','🟦','🟩','🟨'];
+  const len = 4 + Math.floor(Math.random()*3);
+  const seq = Array.from({length:len}, ()=>Math.floor(Math.random()*4));
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🔵 Sequence Tap</div><p id="seqMsg" class="game-instruction">Watch the pattern, then repeat it!</p><div class="seq-grid" id="seqGrid">${[0,1,2,3].map(i=>`<div class="seq-box" id="sq${i}" data-i="${i}">${emojis[i]}</div>`).join('')}</div><div style="font-family:'Orbitron',monospace;font-size:11px;color:var(--text-muted);" id="seqProgress">Watching...</div></div>`;
+  let step = 0; let inputMode = false;
+  function flash(idx, cb) {
+    const box = overlay.querySelector('#sq'+idx);
+    if (!box) return;
+    box.classList.add('lit');
+    setTimeout(()=>{ box.classList.remove('lit'); setTimeout(cb,300); },500);
+  }
+  function playSeq(i=0) {
+    if (i>=seq.length) { setTimeout(enableInput,500); return; }
+    setTimeout(()=>flash(seq[i],()=>playSeq(i+1)), i*800);
+  }
+  function enableInput() {
+    inputMode = true; step = 0;
+    const msg = overlay.querySelector('#seqMsg');
+    const prog = overlay.querySelector('#seqProgress');
+    if (msg) msg.textContent = 'Your turn! Repeat the sequence.';
+    if (prog) prog.textContent = 'Tap 0/'+seq.length;
+    overlay.querySelectorAll('.seq-box').forEach(b=>{
+      b.style.cursor='pointer';
+      b.onclick = () => {
+        if (!inputMode) return;
+        const clicked = parseInt(b.getAttribute('data-i'));
+        if (clicked === seq[step]) {
+          b.classList.add('correct-flash');
+          setTimeout(()=>b.classList.remove('correct-flash'),300);
+          step++;
+          const prog = overlay.querySelector('#seqProgress');
+          if (prog) prog.textContent = 'Tap '+step+'/'+seq.length;
+          if (step===seq.length) {
+            inputMode = false;
+            const ratio = 0.5+(len/12);
+            state.sequenceTapScore = Math.min(1,ratio);
+            status.textContent = 'Perfect! '+len+' step sequence.';
+            status.style.color = 'var(--success)';
+            overlay.remove(); recomputeScore();
+            brainly.say(brainly.pick(brainly.lines.testGood));
+          }
+        } else {
+          inputMode = false;
+          b.classList.add('wrong-flash');
+          const ratio = step/seq.length*0.7;
+          state.sequenceTapScore = ratio;
+          status.textContent = step+'/'+seq.length+' correct';
+          status.style.color = 'var(--text-muted)';
+          setTimeout(()=>{ overlay.remove(); recomputeScore(); brainly.say(brainly.pick(brainly.lines.testBad)); },500);
+        }
+      };
+    });
+  }
+  setTimeout(()=>playSeq(),800);
+}
+
+// ============================================================
+// WORD SCRAMBLE
+// ============================================================
+function runWordScrambleTest() {
+  const status = document.getElementById('wordScrambleStatus');
+  const words = ['BRAIN','LOGIC','QUICK','SMART','FOCUS','TRIVIA','SCORE','NEURON','CORTEX','SYNAPSE','REFLEX','MEMORY'];
+  const word = words[Math.floor(Math.random()*words.length)];
+  let shuffled; do { shuffled = word.split('').sort(()=>Math.random()-0.5).join(''); } while(shuffled===word);
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🔤 Word Scramble</div><p class="game-instruction">Unscramble this word before time runs out!</p><div class="game-big-text" id="wsWord">${shuffled}</div><div class="timer-bar"><div class="timer-fill" id="wsTimer" style="width:100%;background:linear-gradient(90deg,var(--success),var(--warn),var(--danger));"></div></div><input class="game-input" id="wsInput" type="text" placeholder="Your answer..." autocomplete="off" /><button class="btn-main" id="wsSubmit">Submit</button></div>`;
+  const start = performance.now();
+  let ticking = true;
+  const timerInterval = setInterval(()=>{
+    const elapsed = (performance.now()-start)/1000;
+    const pct = Math.max(0,100-(elapsed/10)*100);
+    const fill = overlay.querySelector('#wsTimer');
+    if (fill) fill.style.width = pct+'%';
+    if (elapsed >= 10 && ticking) {
+      ticking = false; clearInterval(timerInterval);
+      state.wordScrambleScore = 0.1;
+      status.textContent = 'Time up! ('+word+')'; status.style.color='var(--danger)';
+      overlay.remove(); recomputeScore();
+      brainly.say(brainly.pick(brainly.lines.testBad));
+    }
+  },100);
+  overlay.querySelector('#wsInput').focus();
+  const submit = () => {
+    if (!ticking) return;
+    ticking = false; clearInterval(timerInterval);
+    const elapsed = (performance.now()-start)/1000;
+    const ans = (overlay.querySelector('#wsInput').value||'').trim().toUpperCase();
+    const ok = ans === word;
+    state.wordScrambleScore = ok ? (elapsed<5?1:elapsed<8?0.8:0.6) : 0.2;
+    status.textContent = ok ? '✓ '+elapsed.toFixed(1)+'s' : '✗ ('+word+')';
+    status.style.color = ok?'var(--success)':'var(--danger)';
+    overlay.remove(); recomputeScore();
+    brainly.say(ok?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+  };
+  overlay.querySelector('#wsSubmit').onclick = submit;
+  overlay.querySelector('#wsInput').addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
+}
+
+// ============================================================
+// SENTENCE REARRANGE (FIXED)
+// ============================================================
+function runRearrangeTest() {
+  const status = document.getElementById('rearrangeStatus');
+  const sentences = [
+    { words: ['The', 'quick', 'brown', 'fox', 'jumps', 'over', 'the', 'lazy', 'dog'], answer: 'The quick brown fox jumps over the lazy dog' },
+    { words: ['Knowledge', 'is', 'power', 'and', 'wisdom', 'is', 'its', 'guide'], answer: 'Knowledge is power and wisdom is its guide' },
+    { words: ['Practice', 'makes', 'perfect', 'every', 'single', 'day'], answer: 'Practice makes perfect every single day' },
+    { words: ['A', 'sharp', 'mind', 'sees', 'what', 'others', 'miss'], answer: 'A sharp mind sees what others miss' }
+  ];
+  const chosen = sentences[Math.floor(Math.random()*sentences.length)];
+  const shuffled = [...chosen.words].sort(()=>Math.random()-0.5);
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box" style="max-width:480px;"><div class="game-title">📝 Sentence Rearrange</div><p class="game-instruction">Tap words in the correct order to form the sentence.</p><div style="margin:16px 0;min-height:50px;padding:12px;background:rgba(0,0,0,0.3);border-radius:12px;border:1px dashed var(--border);display:flex;flex-wrap:wrap;gap:8px;align-items:center;" id="rearrangeAnswer"><p style="color:var(--text-muted);font-size:12px;">Tap words below to build the sentence...</p></div><div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px;" id="rearrangeBank"></div><div style="display:flex;gap:8px;justify-content:center;"><button class="btn-main" id="rearrangeCheck">Check Answer</button><button class="btn-ghost" id="rearrangeClear">Clear</button></div></div>`;
+  const bank = overlay.querySelector('#rearrangeBank');
+  const answerArea = overlay.querySelector('#rearrangeAnswer');
+  let selected = [];
+  function renderBank() {
+    bank.innerHTML = '';
+    shuffled.forEach((w,i) => {
+      if (selected.includes(i)) return;
+      const btn = document.createElement('button');
+      btn.className = 'rearrange-word'; btn.textContent = w;
+      btn.onclick = () => { selected.push(i); renderAll(); };
+      bank.appendChild(btn);
+    });
+  }
+  function renderAnswer() {
+    const placeholder = answerArea.querySelector('p');
+    if (placeholder && selected.length > 0) placeholder.remove();
+    // Clear word buttons only
+    answerArea.querySelectorAll('.rearrange-word').forEach(el=>el.remove());
+    selected.forEach((idx,pos) => {
+      const btn = document.createElement('button');
+      btn.className = 'rearrange-word'; btn.textContent = shuffled[idx];
+      btn.style.background = 'rgba(220,38,38,0.15)'; btn.style.borderColor = 'rgba(220,38,38,0.4)';
+      btn.onclick = () => { selected.splice(pos,1); renderAll(); };
+      answerArea.appendChild(btn);
+    });
+    if (selected.length === 0) {
+      const p = document.createElement('p');
+      p.style.color='var(--text-muted)'; p.style.fontSize='12px';
+      p.textContent = 'Tap words below to build the sentence...';
+      answerArea.appendChild(p);
+    }
+  }
+  function renderAll() { renderBank(); renderAnswer(); }
+  overlay.querySelector('#rearrangeClear').onclick = () => { selected = []; renderAll(); };
+  overlay.querySelector('#rearrangeCheck').onclick = () => {
+    const attempt = selected.map(i=>shuffled[i]).join(' ');
+    const ok = attempt.trim() === chosen.answer.trim();
+    // Partial score
+    const words1 = chosen.answer.split(' ');
+    const words2 = attempt.split(' ');
+    let correct = 0;
+    words1.forEach((w,i)=>{ if(w===words2[i]) correct++; });
+    const ratio = correct/words1.length;
+    state.rearrangeScore = ratio;
+    status.textContent = ok ? '✓ Perfect!' : `${correct}/${words1.length} correct`;
+    status.style.color = ok?'var(--success)':ratio>0.5?'var(--warn)':'var(--danger)';
+    overlay.remove(); recomputeScore();
+    brainly.say(ok?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+  };
+  renderAll();
+}
+
+// ============================================================
+// MATH SPRINT
+// ============================================================
+function runMathTest() {
+  const status = document.getElementById('mathStatus');
+  function genQ() {
+    const ops = ['+','-','×'];
+    const op = ops[Math.floor(Math.random()*ops.length)];
+    let a,b,ans;
+    if (op==='+') { a=Math.floor(Math.random()*50)+1; b=Math.floor(Math.random()*50)+1; ans=a+b; }
+    else if (op==='-') { a=Math.floor(Math.random()*50)+20; b=Math.floor(Math.random()*20)+1; ans=a-b; }
+    else { a=Math.floor(Math.random()*12)+2; b=Math.floor(Math.random()*12)+2; ans=a*b; }
+    return {q:`${a} ${op} ${b}`, ans};
+  }
+  const questions = Array.from({length:5},genQ);
+  let qIdx=0, correct=0, startTime=0;
+  const overlay = createOverlay();
+  overlay.innerHTML = `<div class="game-overlay-box"><div class="game-title">🔢 Math Sprint</div><p class="game-instruction" id="mathQ" style="font-size:28px;font-family:'Orbitron',monospace;font-weight:700;"></p><p style="color:var(--text-muted);font-size:12px;font-family:'Orbitron',monospace;" id="mathProg">Question 1 of 5</p><input class="game-input" id="mathInput" type="number" placeholder="Answer..." autocomplete="off"/><button class="btn-main" id="mathSubmit">Submit</button><div id="mathFeedback" style="height:24px;margin-top:8px;font-family:'Orbitron',monospace;font-size:13px;"></div></div>`;
+  startTime = performance.now();
+  function showQ() {
+    if (qIdx>=5) {
+      const elapsed = (performance.now()-startTime)/1000;
+      const ratio = correct/5;
+      const speedBonus = elapsed < 20 ? 0.2 : 0;
+      state.mathScore = clamp(ratio + speedBonus, 0, 1);
+      status.textContent = correct+'/5 in '+elapsed.toFixed(1)+'s';
+      status.style.color = ratio>=0.8?'var(--success)':'var(--text-muted)';
+      overlay.remove(); recomputeScore();
+      brainly.say(ratio>=0.8?brainly.pick(brainly.lines.testGood):brainly.pick(brainly.lines.testBad));
+      return;
+    }
+    const q = questions[qIdx];
+    overlay.querySelector('#mathQ').textContent = q.q + ' = ?';
+    overlay.querySelector('#mathProg').textContent = 'Question '+(qIdx+1)+' of 5';
+    overlay.querySelector('#mathInput').value = '';
+    overlay.querySelector('#mathFeedback').textContent = '';
+    overlay.querySelector('#mathInput').focus();
+  }
+  const submit = () => {
+    const val = parseInt(overlay.querySelector('#mathInput').value);
+    const ok = val === questions[qIdx].ans;
+    if (ok) correct++;
+    const fb = overlay.querySelector('#mathFeedback');
+    fb.textContent = ok ? '✓ Correct!' : '✗ '+questions[qIdx].ans;
+    fb.style.color = ok?'var(--success)':'var(--danger)';
+    qIdx++;
+    setTimeout(showQ, 600);
+  };
+  overlay.querySelector('#mathSubmit').onclick = submit;
+  overlay.querySelector('#mathInput').addEventListener('keydown',e=>{ if(e.key==='Enter') submit(); });
+  showQ();
+}
+
+// ============================================================
+// GAUNTLET
+// ============================================================
+const gauntletQuestions = [
+  {q:"Which planet has the most moons?",choices:["Jupiter","Saturn","Neptune","Mars"],correct:1,category:"Science",difficulty:"medium"},
+  {q:"What year did the first iPhone launch?",choices:["2005","2007","2009","2011"],correct:1,category:"Tech",difficulty:"easy"},
+  {q:"Solve: 7 × 8 − 12 = ?",choices:["44","52","56","68"],correct:0,category:"Math",difficulty:"easy"},
+  {q:"Who wrote '1984'?",choices:["George Orwell","Aldous Huxley","Ray Bradbury","Tolkien"],correct:0,category:"Literature",difficulty:"easy"},
+  {q:"Capital of Canada?",choices:["Toronto","Vancouver","Ottawa","Montreal"],correct:2,category:"Geography",difficulty:"medium"},
+  {q:"Which organ filters and detoxifies blood chemicals?",choices:["Liver","Kidney","Lungs","Spleen"],correct:0,category:"Medicine",difficulty:"medium"},
+  {q:"Who wrote 'The Wealth of Nations'?",choices:["Keynes","Adam Smith","Friedman","Marx"],correct:1,category:"Economics",difficulty:"hard"},
+  {q:"Points for a basketball shot beyond the arc?",choices:["2","3","4","1"],correct:1,category:"Sports",difficulty:"easy"},
+  {q:"Who released 'Thriller'?",choices:["Prince","Michael Jackson","Madonna","Stevie Wonder"],correct:1,category:"Music",difficulty:"easy"},
+  {q:"Which metal is liquid at room temperature?",choices:["Mercury","Aluminum","Sodium","Zinc"],correct:0,category:"Science",difficulty:"easy"},
+  {q:"Largest ocean on Earth?",choices:["Atlantic","Indian","Arctic","Pacific"],correct:3,category:"Geography",difficulty:"easy"},
+  {q:"How many continents are there?",choices:["5","6","7","8"],correct:2,category:"Geography",difficulty:"easy"},
+  {q:"Approximate speed of light in km/s?",choices:["300,000","150,000","500,000","1,000,000"],correct:0,category:"Science",difficulty:"medium"},
+  {q:"Chemical symbol for gold?",choices:["Go","Gd","Au","Ag"],correct:2,category:"Science",difficulty:"medium"},
+  {q:"Who painted the Mona Lisa?",choices:["Van Gogh","Picasso","Leonardo da Vinci","Rembrandt"],correct:2,category:"Art",difficulty:"easy"},
+  {q:"Smallest prime number?",choices:["0","1","2","3"],correct:2,category:"Math",difficulty:"easy"},
+  {q:"How many strings on a standard guitar?",choices:["4","6","8","12"],correct:1,category:"Music",difficulty:"easy"},
+  {q:"Which is a programming language?",choices:["HTML","Python","CSS","JSON"],correct:1,category:"Tech",difficulty:"easy"},
+  {q:"Napoleon was from which island?",choices:["Sardinia","Sicily","Corsica","Malta"],correct:2,category:"History",difficulty:"hard"},
+  {q:"What is H2O?",choices:["Salt","Water","Sugar","Acid"],correct:1,category:"Science",difficulty:"easy"},
+  {q:"Who developed the theory of general relativity?",choices:["Newton","Einstein","Hawking","Bohr"],correct:1,category:"Science",difficulty:"easy"},
+  {q:"Capital of Japan?",choices:["Osaka","Kyoto","Tokyo","Hiroshima"],correct:2,category:"Geography",difficulty:"easy"},
+  {q:"In what year did WWII end?",choices:["1943","1944","1945","1946"],correct:2,category:"History",difficulty:"easy"},
+  {q:"Which planet is closest to the Sun?",choices:["Venus","Mercury","Mars","Earth"],correct:1,category:"Science",difficulty:"medium"},
+  {q:"Square root of 144?",choices:["10","11","12","14"],correct:2,category:"Math",difficulty:"easy"},
+  {q:"Author of 'Romeo and Juliet'?",choices:["Dickens","Shakespeare","Austen","Hemingway"],correct:1,category:"Literature",difficulty:"easy"},
+  {q:"How many sides does a hexagon have?",choices:["5","6","7","8"],correct:1,category:"Math",difficulty:"easy"},
+  {q:"Which country is most populous?",choices:["India","USA","China","Indonesia"],correct:2,category:"Geography",difficulty:"medium"},
+  {q:"What does CPU stand for?",choices:["Central Processing Unit","Computer Personal Unit","Core Program Utility","Central Program Unit"],correct:0,category:"Tech",difficulty:"easy"},
+  {q:"Primary gas in Earth's atmosphere?",choices:["Oxygen","Carbon dioxide","Nitrogen","Hydrogen"],correct:2,category:"Science",difficulty:"medium"},
+  {q:"In which sport is the Stanley Cup awarded?",choices:["Soccer","Basketball","Hockey","Baseball"],correct:2,category:"Sports",difficulty:"easy"},
+  {q:"What is 15% of 200?",choices:["20","25","30","35"],correct:2,category:"Math",difficulty:"medium"},
+  {q:"Language with most native speakers?",choices:["English","Spanish","Mandarin Chinese","Hindi"],correct:2,category:"Geography",difficulty:"medium"},
+  {q:"Who wrote 'Hamlet'?",choices:["Marlowe","Shakespeare","Milton","Chaucer"],correct:1,category:"Literature",difficulty:"easy"},
+  {q:"Largest mammal on Earth?",choices:["Elephant","Blue whale","Giraffe","Polar bear"],correct:1,category:"Science",difficulty:"easy"},
+  {q:"How many legs does a spider have?",choices:["6","8","10","12"],correct:1,category:"Science",difficulty:"easy"},
+  {q:"Capital of Australia?",choices:["Sydney","Melbourne","Canberra","Perth"],correct:2,category:"Geography",difficulty:"medium"},
+  {q:"Element with atomic number 1?",choices:["Helium","Hydrogen","Carbon","Oxygen"],correct:1,category:"Science",difficulty:"easy"},
+  {q:"In chess, which piece moves in an L-shape?",choices:["Bishop","Rook","Knight","Pawn"],correct:2,category:"Games",difficulty:"easy"},
+  {q:"Freezing point of water in Fahrenheit?",choices:["0","32","100","212"],correct:1,category:"Science",difficulty:"medium"},
+  {q:"Who invented the telephone?",choices:["Edison","Bell","Tesla","Marconi"],correct:1,category:"History",difficulty:"easy"},
+  {q:"How many cards in a standard deck?",choices:["48","52","54","56"],correct:1,category:"Games",difficulty:"easy"},
+  {q:"Country that gifted the Statue of Liberty?",choices:["UK","Spain","France","Italy"],correct:2,category:"History",difficulty:"easy"},
+  {q:"World's longest river?",choices:["Amazon","Nile","Mississippi","Yangtze"],correct:1,category:"Geography",difficulty:"medium"},
+  {q:"Who painted 'Starry Night'?",choices:["Monet","Van Gogh","Cézanne","Renoir"],correct:1,category:"Art",difficulty:"easy"},
+  {q:"How many bones in the adult human body?",choices:["186","206","226","246"],correct:1,category:"Medicine",difficulty:"hard"},
+  {q:"What is 2^10?",choices:["512","1024","2048","4096"],correct:1,category:"Math",difficulty:"medium"},
+  {q:"Which planet is called the Red Planet?",choices:["Venus","Jupiter","Mars","Saturn"],correct:2,category:"Science",difficulty:"easy"},
+  {q:"Year humans first landed on the Moon?",choices:["1967","1969","1971","1973"],correct:1,category:"History",difficulty:"easy"},
+  {q:"Main ingredient in guacamole?",choices:["Tomato","Avocado","Lime","Onion"],correct:1,category:"Trivia",difficulty:"easy"},
+  {q:"Country that invented tea?",choices:["India","Japan","China","UK"],correct:2,category:"Trivia",difficulty:"medium"},
+  {q:"What does 'www' stand for?",choices:["World Wide Web","World Web Wide","Wide World Web","Web World Wide"],correct:0,category:"Tech",difficulty:"easy"},
+  {q:"How many chambers does the human heart have?",choices:["2","3","4","5"],correct:2,category:"Medicine",difficulty:"medium"},
+  {q:"What is the chemical symbol for iron?",choices:["Ir","Fe","Io","In"],correct:1,category:"Science",difficulty:"medium"},
+  {q:"Which gas do plants absorb from the atmosphere?",choices:["Oxygen","Nitrogen","Carbon dioxide","Helium"],correct:2,category:"Science",difficulty:"easy"},
+  {q:"In what decade was the internet born?",choices:["1960s","1970s","1980s","1990s"],correct:1,category:"Tech",difficulty:"medium"},
+  {q:"Which is the most abundant element in the universe?",choices:["Helium","Oxygen","Carbon","Hydrogen"],correct:3,category:"Science",difficulty:"hard"},
+  {q:"What is the Pythagorean theorem for a right triangle with legs 3 and 4?",choices:["Hypotenuse = 5","Hypotenuse = 6","Hypotenuse = 7","Hypotenuse = 8"],correct:0,category:"Math",difficulty:"medium"},
+  {q:"Capital of Brazil?",choices:["Rio de Janeiro","São Paulo","Brasília","Salvador"],correct:2,category:"Geography",difficulty:"medium"},
+  {q:"Who directed 'Schindler's List'?",choices:["Kubrick","Spielberg","Scorsese","Nolan"],correct:1,category:"Art",difficulty:"medium"},
+  {q:"What is the hardest natural substance?",choices:["Steel","Quartz","Diamond","Titanium"],correct:2,category:"Science",difficulty:"easy"}
+];
+
+let gauntletDiffMode = 'medium';
+
+document.querySelectorAll('[data-diff]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if (state.gauntlet.active) return;
+    gauntletDiffMode = btn.getAttribute('data-diff');
+    document.querySelectorAll('[data-diff]').forEach(b=>b.classList.remove('active-diff'));
+    btn.classList.add('active-diff');
+  });
+});
+
+function resetGauntlet(soft) {
+  if (state.gauntlet.timerInterval) clearInterval(state.gauntlet.timerInterval);
+  state.gauntlet = { active:false, strikes:0, correct:0, wrong:0, streak:0, questionIndex:null, usedIndices:new Set(), difficulty:gauntletDiffMode, timerInterval:null };
+  if (!soft) state.gauntletDelta = 0;
+  updateGauntletMeta(); renderStrikes();
+  document.getElementById('gauntletBody').innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Hit Start Gauntlet to begin. Answer fast — speed bonuses stack.</p>';
+  document.getElementById('gauntletTimerBar').style.display='none';
+  document.getElementById('streakCount').textContent = '0';
+  if (!soft) recomputeScore();
+}
+
+function renderStrikes() {
+  document.querySelectorAll('#strikeIndicator .strike-dot').forEach((s,i)=>s.classList.toggle('active',i<state.gauntlet.strikes));
+}
+function updateGauntletMeta() {
+  const el = document.getElementById('gauntletMeta');
+  if (el) el.textContent = state.gauntlet.correct+' correct · '+state.gauntlet.wrong+' wrong · Impact: '+(state.gauntletDelta>=0?'+':'')+state.gauntletDelta;
+}
+
+function startGauntlet() {
+  state.gauntlet.active = true;
+  state.gauntlet.strikes = 0; state.gauntlet.correct = 0; state.gauntlet.wrong = 0;
+  state.gauntlet.streak = 0; state.gauntlet.usedIndices = new Set();
+  state.gauntlet.difficulty = gauntletDiffMode;
+  state.gauntletDelta = 0;
+  renderStrikes();
+  document.getElementById('streakCount').textContent = '0';
+  brainly.say(brainly.pick(brainly.lines.vibe));
+  brainly.showBubble('Game on! 🔥');
+  nextGauntletQuestion();
+}
+
+function getFilteredQuestions() {
+  if (state.gauntlet.difficulty === 'easy') return gauntletQuestions.filter(q=>q.difficulty==='easy');
+  if (state.gauntlet.difficulty === 'hard') return gauntletQuestions.filter(q=>q.difficulty==='hard'||q.difficulty==='medium');
+  return gauntletQuestions; // mixed
+}
+
+function nextGauntletQuestion() {
+  if (!state.gauntlet.active) return;
+  const pool = getFilteredQuestions().filter((_,i)=>!state.gauntlet.usedIndices.has(gauntletQuestions.indexOf(getFilteredQuestions()[i])));
+  const filteredPool = getFilteredQuestions();
+  const available = filteredPool.filter((q,i)=>!state.gauntlet.usedIndices.has(gauntletQuestions.indexOf(q)));
+  if (!available.length) { endGauntlet("You cleared the pool! Absolute unit."); return; }
+  const q = available[Math.floor(Math.random()*available.length)];
+  const globalIdx = gauntletQuestions.indexOf(q);
+  state.gauntlet.usedIndices.add(globalIdx);
+  state.gauntlet.questionIndex = globalIdx;
+  const diffClass = q.difficulty==='easy'?'diff-easy':q.difficulty==='hard'?'diff-hard':'diff-medium';
+  const diffLabel = q.difficulty.toUpperCase();
+  const body = document.getElementById('gauntletBody');
+  body.innerHTML = `<div class="gauntlet-question">${q.q}</div><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;"><span style="font-family:'Orbitron',monospace;font-size:10px;color:var(--text-muted);">${q.category}</span><span class="difficulty-badge ${diffClass}">${diffLabel}</span></div><div class="choice-row">${q.choices.map((c,i)=>`<button class="choice-btn" data-idx="${i}">${c}</button>`).join('')}</div>`;
+  // Timer per question
+  const timerBar = document.getElementById('gauntletTimerBar');
+  const timerFill = document.getElementById('gauntletTimerFill');
+  timerBar.style.display = 'block';
+  timerFill.style.width = '100%';
+  const timeLimit = q.difficulty==='easy'?15:q.difficulty==='hard'?8:12;
+  const start = performance.now();
+  if (state.gauntlet.timerInterval) clearInterval(state.gauntlet.timerInterval);
+  state.gauntlet.timerInterval = setInterval(()=>{
+    const elapsed = (performance.now()-start)/1000;
+    const pct = Math.max(0,100-(elapsed/timeLimit)*100);
+    timerFill.style.width = pct+'%';
+    timerFill.style.background = pct>50?'var(--success)':pct>25?'var(--warn)':'var(--danger)';
+    if (elapsed >= timeLimit) {
+      clearInterval(state.gauntlet.timerInterval);
+      handleGauntletAnswer(-1, elapsed, true); // timeout
+    }
+  },100);
+  const qStart = performance.now();
+  body.querySelectorAll('.choice-btn').forEach(btn=>{
+    btn.onclick=()=>{ clearInterval(state.gauntlet.timerInterval); handleGauntletAnswer(parseInt(btn.getAttribute('data-idx')), (performance.now()-qStart)/1000, false); };
+  });
+}
+
+function handleGauntletAnswer(choice, elapsed, timedOut) {
+  if (!state.gauntlet.active) return;
+  const q = gauntletQuestions[state.gauntlet.questionIndex];
+  const correct = !timedOut && choice===q.correct;
+  let delta = 0;
+  if (timedOut) { delta = -8; }
+  else if (correct) {
+    delta = 8 + (elapsed<4?6:elapsed<7?3:0);
+    if (state.gauntlet.streak >= 3) delta += 5; // streak bonus
+    state.gauntlet.streak++;
+    document.getElementById('streakCount').textContent = state.gauntlet.streak;
+  } else {
+    delta = -10; state.gauntlet.strikes++;
+    state.gauntlet.streak = 0;
+    document.getElementById('streakCount').textContent = '0';
+    brainly.say(brainly.pick(brainly.lines.gauntletStrike));
+    brainly.showBubble('Strike ' + state.gauntlet.strikes + '/3 ⚠️');
+  }
+  state.gauntlet.correct += correct?1:0;
+  state.gauntlet.wrong += (!correct)?1:0;
+  state.gauntletDelta += delta;
+  renderStrikes(); updateGauntletMeta(); recomputeScore();
+  const statusMsg = timedOut ? '⏱ Time up! Answer: '+q.choices[q.correct] : correct ? '✓ Correct! (+'+delta+' pts)' : '✗ Wrong. Answer: '+q.choices[q.correct];
+  document.getElementById('gauntletBody').innerHTML = `<p class="gauntlet-question" style="color:${correct?'var(--success)':timedOut?'var(--warn)':'var(--danger)'}">${statusMsg}</p>${state.gauntlet.streak>2?`<p style="color:var(--warn);font-family:'Orbitron',monospace;font-size:11px;">🔥 ${state.gauntlet.streak} streak!</p>`:''}`;
+  if (state.gauntlet.strikes >= 3) setTimeout(()=>endGauntlet("3 strikes. Game over. Save your score and go again."), 900);
+  else setTimeout(nextGauntletQuestion, 900);
+}
+
+function endGauntlet(msg) {
+  state.gauntlet.active = false;
+  if (state.gauntlet.timerInterval) clearInterval(state.gauntlet.timerInterval);
+  document.getElementById('gauntletTimerBar').style.display='none';
+  updateGauntletMeta();
+  document.getElementById('gauntletBody').innerHTML = `<p class="gauntlet-question" style="font-size:14px;">${msg}</p><p class="gauntlet-meta" style="margin-top:6px;">${state.gauntlet.correct} correct · ${state.gauntlet.wrong} wrong · Total: ${state.gauntletDelta>=0?'+':''}${state.gauntletDelta} pts</p>`;
+  brainly.say(brainly.pick(brainly.lines.gauntletWin));
+  brainly.showBubble('Gauntlet complete! 🏆');
+}
+
+// ============================================================
+// INIT APP
+// ============================================================
+function initApp() {
+  const t = loadTheme(); applyTheme(t);
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) { themeSelect.value = t; themeSelect.onchange = ()=>applyTheme(themeSelect.value); }
+
+  loadHistory(); newDay(); updatePlusUI();
+
+  // Load outfit
+  try { state.currentOutfit = localStorage.getItem(OUTFIT_KEY) || 'default'; } catch(e){}
+  try { state.unlockedOutfits = new Set(JSON.parse(localStorage.getItem('brainScoreOutfits')||'["default"]')); } catch(e){state.unlockedOutfits=new Set(['default']);}
+  renderOutfitBadges(); applyOutfitToBrainly(state.currentOutfit);
+
+  // Load brainly enabled
+  try { const b = localStorage.getItem(BRAINLY_KEY); if(b!==null) state.brainlyEnabled = b==='true'; } catch(e){}
+
+  // Account
+  const userRaw = localStorage.getItem(AUTH_KEY);
+  if (userRaw) {
+    try {
+      const acc = JSON.parse(userRaw);
+      const lbl = document.getElementById('settingsUsernameLabel');
+      if (lbl && acc.user) lbl.textContent = acc.user;
+      brainly.say(acc.user ? "Hey "+acc.user+"! "+brainly.pick(brainly.lines.welcome) : brainly.pick(brainly.lines.welcome));
+    } catch(e){ brainly.say(brainly.pick(brainly.lines.welcome)); }
+  }
+
+  // Wire buttons
+  document.getElementById('newDayBtn').onclick = newDay;
+  document.getElementById('saveSnapshotBtn').onclick = saveSnapshot;
+  document.getElementById('reactionBtn').onclick = runReactionTest;
+  document.getElementById('memoryBtn').onclick = runMemoryTest;
+  document.getElementById('logicBtn').onclick = runLogicTest;
+  document.getElementById('colorMatchBtn').onclick = runColorMatchTest;
+  document.getElementById('sequenceTapBtn').onclick = runSequenceTapTest;
+  document.getElementById('wordScrambleBtn').onclick = runWordScrambleTest;
+  document.getElementById('rearrangeBtn').onclick = runRearrangeTest;
+  document.getElementById('mathBtn').onclick = runMathTest;
+  document.getElementById('startGauntletBtn').onclick = startGauntlet;
+  document.getElementById('resetGauntletBtn').onclick = ()=>resetGauntlet(false);
+  document.getElementById('shareScoreBtn').onclick = shareScore;
+
+  // Onboarding
+  if (!localStorage.getItem(ONBOARDING_KEY)) {
+    document.getElementById('onboardingOverlay').classList.remove('hidden');
+  }
+  document.getElementById('onboardingDone').onclick = ()=>{
+    document.getElementById('onboardingOverlay').classList.add('hidden');
+    localStorage.setItem(ONBOARDING_KEY,'1');
+  };
+
+  // Plus
+  document.getElementById('subscribePlusBtn').onclick = ()=>document.getElementById('paywallOverlay').classList.remove('hidden');
+  document.getElementById('paywallCancel').onclick = ()=>document.getElementById('paywallOverlay').classList.add('hidden');
+  document.getElementById('paywallConfirm').onclick = ()=>{
+    const link = STRIPE_PLUS_PAYMENT_LINK;
+    if (link && link.includes('stripe.com') && link.length > 30) {
+      window.location.href = link;
+    } else {
+      setPlusActive(true); updatePlusUI();
+      document.getElementById('paywallOverlay').classList.add('hidden');
+      navTo('plus');
+      brainly.say('Plus activated! Welcome to the squad. 🎉', false);
+    }
+  };
+  const manageBtn = document.getElementById('managePlusBtn');
+  if (manageBtn) manageBtn.onclick = ()=>window.open('https://billing.stripe.com/p/login/xxx','_blank');
+
+  // Settings
+  const accountSaveBtn = document.getElementById('accountSaveBtn');
+  if (accountSaveBtn) accountSaveBtn.onclick = ()=>{
+    const u = (document.getElementById('settingsUsername').value||'').trim();
+    const p = document.getElementById('settingsPassword').value||'';
+    const raw = localStorage.getItem(AUTH_KEY);
+    if (raw) {
+      try {
+        const acc = JSON.parse(raw);
+        if (u.length>=3) acc.user=u;
+        if (p.length>=6) acc.pass=p;
+        localStorage.setItem(AUTH_KEY,JSON.stringify(acc));
+        document.getElementById('settingsUsernameLabel').textContent = acc.user;
+        document.getElementById('settingsUsername').value='';
+        document.getElementById('settingsPassword').value='';
+        brainly.say('Account updated. New you, same brain.', false);
+      } catch(e){}
+    }
+  };
+
+  const brainlySetting = document.getElementById('brainlyToggleSetting');
+  if (brainlySetting) {
+    brainlySetting.checked = state.brainlyEnabled;
+    brainlySetting.onchange = ()=>{
+      state.brainlyEnabled = !!brainlySetting.checked;
+      try { localStorage.setItem(BRAINLY_KEY, state.brainlyEnabled.toString()); } catch(e){}
+      if (!state.brainlyEnabled) document.getElementById('brainlyPanel').classList.add('hidden');
+    };
+  }
+
+  const signOutBtn = document.getElementById('signOutBtn');
+  if (signOutBtn) signOutBtn.onclick = ()=>{
+    if (confirm('Sign out?')) { localStorage.removeItem(AUTH_KEY); location.reload(); }
+  };
+
+  // Blinking eyes animation
+  setInterval(()=>{
+    const eyeL = document.getElementById('eyeL');
+    const eyeR = document.getElementById('eyeR');
+    if (eyeL && eyeR) {
+      eyeL.setAttribute('ry','0.3'); eyeR.setAttribute('ry','0.3');
+      setTimeout(()=>{ eyeL.setAttribute('ry','1.8'); eyeR.setAttribute('ry','1.8'); },120);
+    }
+  }, 3000 + Math.random()*3000);
+
+  // Service worker
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// Auto-login
+const saved = localStorage.getItem(AUTH_KEY);
+if (saved) {
+  document.getElementById('loginScreen').style.display='none';
+  showLoading(()=>{ document.getElementById('appShell').classList.add('visible'); initApp(); });
+}
+</script>
+</body>
+</html>
